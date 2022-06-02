@@ -1,0 +1,18 @@
+version: '3.1'
+
+services:
+  pg_db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=messenger
+    volumes:
+      - D:\opt\data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  app:
+    image: jd2-messager
+    ports:
+      - 80:8080

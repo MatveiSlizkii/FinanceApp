@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/accounts?ApplicationName=TestSweetApp
+    username: postgres
+    password: postgres
+  mvc:
+    view:
+      prefix: /views/
+      suffix: .jsp
+  mail:
+    host: smtp.mail.ru
+    port: 465
+    username: my.finance.app@mail.ru
+    from: my.finance.app@mail.ru
+    protocol: smtps
+    password: JB8Lcrkqg72sXRYEBN1p
+    smtp.auth: true
+    smtp.starttls.enable: true
+server:
+  port : 8084
+
+
+#spring.mail.properties.mail.smtp.connectiontimeout: 5000
+#spring.mail.properties.mail.smtp.timeout: 3000
+#spring.mail.properties.mail.smtp.writetimeout: 5000
