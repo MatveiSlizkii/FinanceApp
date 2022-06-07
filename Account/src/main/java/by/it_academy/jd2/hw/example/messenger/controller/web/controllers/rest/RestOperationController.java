@@ -1,14 +1,17 @@
 package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.services.api.IOperationService;
-import by.it_academy.jd2.hw.example.messenger.services.api.IValidateArgument;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Min;
 import java.util.UUID;
 
 @RestController
@@ -24,15 +27,12 @@ public class RestOperationController {
         this.conversionService = conversionService;
     }
 
-    @RequestMapping(
-            value = {"", "/"},
-            method = RequestMethod.GET,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @GetMapping(value = {"", "/"}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Page<Operation> index(@RequestParam(name = "page") int page,
-                                 @RequestParam(name = "size") int size,
+    @ResponseStatus(HttpStatus.OK)
+    public Page<Operation> index(@RequestParam @Min(value = 0, message = MessageError.PAGE_NUMBER) int page,
+                                 @RequestParam @Min(value = 1, message = MessageError.PAGE_SIZE) int size,
                                  @PathVariable(name = "uuid") UUID uuidAccount) {
         //TODO есть ли такой уид в базе
 
@@ -41,30 +41,24 @@ public class RestOperationController {
         return operationService.getByUuidAccount(uuidAccount, pageable);
     }
 
-    @RequestMapping(
-            value = {"", "/"},
-            method = RequestMethod.POST,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @PostMapping(value = {"", "/"}, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
     public Operation create(@RequestBody Operation operation,
                             @PathVariable(name = "uuid") UUID uuidAccount) {
         //TODO на валидность операции
         //TODO есть ли такой уид счета
-//        IValidateArgument validateArgument = new ValidateOperation();
-//        validateArgument.validate(operation);
         operation.setUuidAccount(uuidAccount);
         return operationService.save(operation);
     }
 
-    @RequestMapping(
-            value = {"{uuid_operation}/dt_update/{dt_update}", "{uuid_operation}/dt_update/{dt_update}/"},
-            method = RequestMethod.PUT,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @PutMapping(value = {"{uuid_operation}/dt_update/{dt_update}",
+                        "{uuid_operation}/dt_update/{dt_update}/"},
+                        consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     public Operation update(@RequestBody Operation operation,
                             @PathVariable(name = "uuid") UUID uuidAccount,
                             @PathVariable(name = "uuid_operation") UUID uuid,
@@ -75,20 +69,25 @@ public class RestOperationController {
     }
 
 
-    @RequestMapping(
-            value = {"{uuid_operation}/dt_update/{dt_update}", "{uuid_operation}/dt_update/{dt_update}/"},
-            method = RequestMethod.DELETE,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @DeleteMapping(value = {"{uuid_operation}/dt_update/{dt_update}",
+                            "{uuid_operation}/dt_update/{dt_update}/"},
+                            consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     public Operation delete(@PathVariable(name = "uuid") UUID uuidAccount,
                             @PathVariable(name = "uuid_operation") UUID uuid,
-                            @PathVariable(name = "dt_update") Long dt_update) {
+                            @PathVariable(name = "dt_update") String dtUpdateString) {
         //TODO сделать проверку принадлежит ли данная операция счету
-        //TODO парсится ли лонг
+        long dtUpdateLong;
+        try {
+            dtUpdateLong = Long.parseLong(dtUpdateString);
+        } catch (NumberFormatException e) {
+            throw new ValidationException("Передан неверный формат параметра последнего обновления");
+        }
+
         Operation operation = operationService.get(uuid);
-        operationService.delete(uuid, dt_update);
+        operationService.delete(uuid, dtUpdateLong);
         return operation;
     }
 }

@@ -1,18 +1,26 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IAccountStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IBalanceStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.BalanceEntity;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Account;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.AccountEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
-import by.it_academy.jd2.hw.example.messenger.services.api.IValidateArgument;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,16 +33,16 @@ public class AccountService implements IAccountService {
     private final IAccountStorage accountStorage;
     private final ConversionService conversionService;
     private final IBalanceStorage balanceStorage;
+    private final RestTemplate restTemplate;
+    private final EntityManager em;
 
-
-    @PersistenceContext
-    private EntityManager em;
-
-
-    public AccountService(IAccountStorage accountStorage, ConversionService conversionService, IBalanceStorage balanceStorage) {
+    public AccountService(IAccountStorage accountStorage, ConversionService conversionService,
+                          IBalanceStorage balanceStorage, EntityManager em) {
         this.accountStorage = accountStorage;
         this.conversionService = conversionService;
         this.balanceStorage = balanceStorage;
+        this.em = em;
+        this.restTemplate = new RestTemplate();
     }
 
     @Override
@@ -43,13 +51,20 @@ public class AccountService implements IAccountService {
 
         return conversionService.convert(accountStorage.getById(uuid), Account.class);
     }
-
+    //TODO перепроверить аннотацию транзакция
     @Override
     //@Transactional
     public Account save(Account account) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        this.checkAccount(account, errors);
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
+
+
         LocalDateTime timeNow = LocalDateTime.now();
-//        IValidateArgument validateArgument = new ValidateAccount();
-//        validateArgument.validate(account);
         UUID uuid = UUID.randomUUID();
         account.setUuid(uuid);
         account.setDt_create(timeNow);
@@ -82,13 +97,14 @@ public class AccountService implements IAccountService {
     @Override
     @Transactional
     public Account update(UUID uuid, Account accountRaw, Long dt_update) {
+
+
         LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
         if (!accountStorage.getById(uuid).getDtUpdate().equals(checkDateTime)) {
             throw new IllegalArgumentException("Данная версия для обновления устарела," +
                     "обновите, пожалуйста страницу");
         }
-        //selectel
-        //hertz
+
         AccountEntity accountEntity = em.find(AccountEntity.class, uuid);
         em.refresh(accountEntity, LockModeType.OPTIMISTIC);
         if (accountRaw.getTitle() != null) {
@@ -106,7 +122,9 @@ public class AccountService implements IAccountService {
         if (accountRaw.getBalance() != null){
             updateBalance(accountEntity.getUuid(), accountRaw.getBalance());
         }
-        //em.close(); // под вопросом надо ли она, скорее всего нет
+
+        //TODO ошибка если не удалось обновить систему
+
         return conversionService.convert(accountStorage.getById(uuid), Account.class);
     }
 
@@ -116,6 +134,44 @@ public class AccountService implements IAccountService {
         em.refresh(balanceEntity, LockModeType.OPTIMISTIC);
         Double valueFinal = balanceEntity.getValue() + value;
         balanceEntity.setValue(valueFinal);
+
+        //TODO ошибка если не обновилось
+
         return balanceEntity;
     }
+
+    //TODO сделать отдельный чек на титл и курренси
+
+    private void checkAccount(Account account, List<ValidationError> errors) {
+
+        if (account == null) {
+            errors.add(new ValidationError("account", MessageError.MISSING_OBJECT));
+            return;
+        }
+
+        if (account.getType() == null) {
+            errors.add(new ValidationError("type", MessageError.MISSING_FIELD));
+        }
+
+        if (account.getCurrency() == null) {
+            errors.add(new ValidationError("currency", MessageError.MISSING_FIELD));
+        } else {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            try {
+                String currencyClassifierUrl = "http://localhost:8081/classifier/currency/" + account.getCurrency() + "/";
+                this.restTemplate.exchange(currencyClassifierUrl, HttpMethod.GET, entity, String.class);
+            } catch (HttpStatusCodeException e) {
+                errors.add(new ValidationError("currency", MessageError.ID_NOT_EXIST));
+            }
+        }
+
+        if (account.getTitle() == null || account.getTitle().isEmpty()) {
+            errors.add(new ValidationError("title", MessageError.MISSING_FIELD));
+        } else {
+            //TODO когда будет юзер чтобы проверяло название счета и юзера
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.advice;
+package by.it_academy.jd2.hw.example.messenger.services.api;
 
 import java.util.ArrayList;
 import java.util.List;

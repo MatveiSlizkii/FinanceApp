@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IOperationStorage;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.OperationEntity;
@@ -9,12 +10,17 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,47 +31,51 @@ public class OperationService implements IOperationService {
     private final IOperationStorage operationStorage;
     private final ConversionService conversionService;
     private final IAccountService accountService;
-
-    @PersistenceContext
-    private EntityManager em;
+    private final EntityManager em;
+    private final RestTemplate restTemplate;
 
     public OperationService(IOperationStorage operationStorage,
                             ConversionService conversionService,
-                            IAccountService accountService) {
+                            IAccountService accountService,
+                            EntityManager em) {
         this.operationStorage = operationStorage;
         this.conversionService = conversionService;
         this.accountService = accountService;
+        this.restTemplate = new RestTemplate();
+        this.em = em;
     }
 
     @Override
     @Transactional
     public Operation get(UUID uuid) {
-        return conversionService.convert(operationStorage.findByUuidAccount(uuid),Operation.class);
+        //TODO навесить трай кетч
+        return conversionService.convert(operationStorage.findByUuidAccount(uuid), Operation.class);
     }
 
     @Override
     @Transactional
     public Operation save(Operation operation) {
+
+
+
         LocalDateTime timeNow = LocalDateTime.now();
-//        IValidateArgument<Operation> validateArgument = new ValidateOperation();
-//        validateArgument.validate(operation);
         operation.setUuid(UUID.randomUUID());
         operation.setDtCreate(timeNow);
         operation.setDtUpdate(timeNow);
         accountService.updateBalance(operation.getUuidAccount(), operation.getValue());
 
         OperationEntity operationEntity = conversionService.convert(operation, OperationEntity.class);
-        return conversionService.convert(operationStorage.save(operationEntity),Operation.class);
+        return conversionService.convert(operationStorage.save(operationEntity), Operation.class);
     }
 
     @Override
     @Transactional
     public Page<Operation> getAll(Pageable pageable) {
-        List<Operation> operations= new ArrayList<>();
-        operationStorage.findAll().forEach((o)->
+        List<Operation> operations = new ArrayList<>();
+        operationStorage.findAll().forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
 
-        int start = (int)pageable.getOffset();
+        int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), operations.size());
         return new PageImpl<>(operations.subList(start, end), pageable, operations.size());
     }
@@ -74,9 +84,9 @@ public class OperationService implements IOperationService {
     @Transactional
     public Page<Operation> getByUuidAccount(UUID uuidAccount, Pageable pageable) {
         List<Operation> operations = new ArrayList<>();
-        operationStorage.findByUuidAccount(uuidAccount).forEach((o)->
+        operationStorage.findByUuidAccount(uuidAccount).forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
-        int start = (int)pageable.getOffset();
+        int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), operations.size());
         return new PageImpl<>(operations.subList(start, end), pageable, operations.size());
     }
@@ -132,15 +142,67 @@ public class OperationService implements IOperationService {
         em.refresh(operationEntity, LockModeType.OPTIMISTIC);
         operationStorage.delete(operationEntity);
         //em.close(); // под вопросом надо ли она, скорее всего нет
-        return conversionService.convert(operationEntity,Operation.class);
+        return conversionService.convert(operationEntity, Operation.class);
     }
 
     @Override
     public List<Operation> getBetweenDates(LocalDateTime to, LocalDateTime from, UUID uuidAccount) {
         List<Operation> operations = new ArrayList<>();
         List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
-        operationEntities.forEach((o)->
+        operationEntities.forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
         return operations;
     }
-}
+
+
+    private void checkOperation(Operation operation, List<ValidationError> errors) {
+
+        if (operation == null) {
+            errors.add(new ValidationError("operation", "Не передан объект operation"));
+            return;
+        }
+
+        String currencyClassifierUrl = "http://localhost:8081/classifier/currency/" + operation.getCurrency() + "/";
+        String categoryClassifierUrl = "http://localhost:8081/classifier/operation/category/" + operation.getCategory() + "/";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(headers);
+
+        if (operation.getCategory() == null) {
+            errors.add(new ValidationError("category", "Не передана категория операции"));
+        } else {
+            try {
+                this.restTemplate.exchange(categoryClassifierUrl, HttpMethod.GET, entity, String.class);
+            } catch (HttpStatusCodeException e) {
+                errors.add(new ValidationError("category", "Передан uuid категории, которой нет в справочнике"));
+            }
+        }
+
+        if (operation.getValue() == 0) {
+            errors.add(new ValidationError("value", "Передана нулевая сумма операции"));
+        }
+
+        if (operation.getCurrency() == null) {
+            errors.add(new ValidationError("currency", "Не передана валюта операции"));
+        } else {
+            try {
+                this.restTemplate.exchange(currencyClassifierUrl, HttpMethod.GET, entity, String.class);
+            } catch (HttpStatusCodeException e) {
+                errors.add(new ValidationError("currency", "Передан uuid валюты, которого нет в справочнике"));
+            }
+        }
+
+        if (operation.getUuidAccount() == null){
+            errors.add(new ValidationError("UuidAccount", "Не передан uuid счёта"));
+        } else
+
+            //TODO проверить как я сделал, верный ли кетч
+            try {
+                accountService.get(operation.getUuidAccount());
+            }
+            catch (IllegalArgumentException e){
+            errors.add(new ValidationError("UuidAccount", "Передан uuid несуществующего счёта"));
+        }
+        }
+    }
+

@@ -2,12 +2,15 @@ package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
 import by.it_academy.jd2.hw.example.messenger.model.dto.Account;
 import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Min;
 import java.util.UUID;
 
 @RestController
@@ -22,50 +25,40 @@ public class RestAccountController {
         this.accountService = accountService;
     }
 
-    @RequestMapping(
-            value = {"", "/"},
-            method = RequestMethod.GET
-    )
+
+    @GetMapping(value = {"", "/"}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Page<Account> index(@RequestParam(name = "page") int page,
-                               @RequestParam(name = "size") int size) {
-        //TODO пейджа и сайза
+    @ResponseStatus(HttpStatus.OK)
+    public Page<Account> index(@RequestParam @Min(value = 0, message = MessageError.PAGE_NUMBER) int page,
+                               @RequestParam @Min(value = 1, message = MessageError.PAGE_SIZE) int size) {
         Pageable pageable = Pageable.ofSize(size).withPage(page - 1);
 
         return accountService.getAll(pageable);
     }
 
-    @RequestMapping(
-            value = {"{uuid}", "{uuid}/"},
-            method = RequestMethod.GET
-    )
+    @GetMapping(value = {"{uuid}", "{uuid}/"}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     public Account index(@PathVariable(name = "uuid") UUID uuid) {
         //TODO ошибки есть ли этот уид
 
         return accountService.get(uuid);
     }
 
-    @RequestMapping(
-            value = {"", "/"},
-            method = RequestMethod.POST,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @PostMapping(value = {"", "/"}, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
     public Account create(@RequestBody Account account) {
-//TODO проверка есть ли все поля в аккаунте
         return accountService.save(account);
     }
 
 
-    @RequestMapping(
-            value = {"{uuid}/dt_update/{dt_update}", "{uuid}/dt_update/{dt_update}/"},
-            method = RequestMethod.PUT,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @PutMapping(value = {"{uuid}/dt_update/{dt_update}", "{uuid}/dt_update/{dt_update}/"},
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     public Account update(@RequestBody Account account,
                           @PathVariable UUID uuid,
                           @PathVariable Long dt_update) {
