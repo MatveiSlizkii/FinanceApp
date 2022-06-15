@@ -4,6 +4,9 @@ import by.it_academy.jd2.hw.example.messenger.dao.api.IOperationCategoryStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.OperationCategoryEntity;
 import by.it_academy.jd2.hw.example.messenger.model.OperationCategory;
 import by.it_academy.jd2.hw.example.messenger.services.api.IOperationCategoryService;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,14 +30,35 @@ public class OperationCategoryService implements IOperationCategoryService {
     }
 
     @Override
-    public OperationCategory get(UUID id) {
-        return conversionService.convert(operationCategoryStorage.getById(id), OperationCategory.class);
+    public OperationCategory get(UUID uuid) {
+        OperationCategoryEntity operationCategoryEntity;
+
+        try {
+            operationCategoryEntity = operationCategoryStorage.findById(uuid).orElse(null);
+        } catch (Exception e) {
+            throw new RuntimeException(MessageError.SQL_ERROR, e);
+        }
+
+        if (operationCategoryEntity == null) {
+            throw new ValidationException(MessageError.ID_NOT_EXIST);
+        }
+
+
+        return conversionService.convert(operationCategoryStorage.getById(uuid), OperationCategory.class);
     }
 
     @Override
     public OperationCategory save(OperationCategory operationCategory) {
-//        IValidate<OperationCategoryEntity> validate = new ValidateOperationCategory();
-//        validate.validate(operationCategoryEntity);
+
+        if (operationCategory == null || operationCategory.getTitle() == null || operationCategory.getTitle().isEmpty()) {
+            throw new ValidationException(
+                    new ValidationError("title (название категории)", MessageError.MISSING_FIELD));
+
+        } else if (this.operationCategoryStorage.findByTitle(operationCategory.getTitle()).isPresent()) {
+            throw new ValidationException(
+                    new ValidationError("title (название категории)", MessageError.NO_UNIQUE_FIELD));
+        }
+
         LocalDateTime localDateTime = LocalDateTime.now();
         operationCategory.setUuid(UUID.randomUUID());
         operationCategory.setDt_create(localDateTime);

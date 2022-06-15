@@ -24,7 +24,8 @@ public class ScheduleService implements IScheduleService {
     @PersistenceContext
     private EntityManager em;
 
-    public ScheduleService(IScheduleStorage scheduleStorage, ConversionService conversionService) {
+    public ScheduleService(IScheduleStorage scheduleStorage,
+                           ConversionService conversionService) {
         this.scheduleStorage = scheduleStorage;
         this.conversionService = conversionService;
     }
@@ -72,7 +73,7 @@ public class ScheduleService implements IScheduleService {
             scheduleEntity.setTime_unit(scheduleRaw.getTime_unit().name());
         }
 
-        em.close(); // под вопросом надо ли она, скорее всего нет
+
 
         return conversionService.convert(scheduleEntity, Schedule.class);
     }

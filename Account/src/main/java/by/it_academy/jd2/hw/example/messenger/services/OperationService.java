@@ -6,6 +6,7 @@ import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.OperationEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
 import by.it_academy.jd2.hw.example.messenger.services.api.IOperationService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,20 +45,22 @@ public class OperationService implements IOperationService {
         this.restTemplate = new RestTemplate();
         this.em = em;
     }
+    @Value("${classifier_currency_url}")
+    private String currencyUrl;
+
+    @Value("${classifier_category_url}")
+    private String categoryUrl;
 
     @Override
     @Transactional
     public Operation get(UUID uuid) {
-        //TODO навесить трай кетч
+        //TODO навесить трай кетч существует ли операция
         return conversionService.convert(operationStorage.findByUuidAccount(uuid), Operation.class);
     }
 
     @Override
     @Transactional
     public Operation save(Operation operation) {
-
-
-
         LocalDateTime timeNow = LocalDateTime.now();
         operation.setUuid(UUID.randomUUID());
         operation.setDtCreate(timeNow);
@@ -162,8 +165,8 @@ public class OperationService implements IOperationService {
             return;
         }
 
-        String currencyClassifierUrl = "http://localhost:8081/classifier/currency/" + operation.getCurrency() + "/";
-        String categoryClassifierUrl = "http://localhost:8081/classifier/operation/category/" + operation.getCategory() + "/";
+        String currencyClassifierUrl = currencyUrl + operation.getCurrency() + "/";
+        String categoryClassifierUrl = categoryUrl + operation.getCategory() + "/";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Object> entity = new HttpEntity<>(headers);

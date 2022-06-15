@@ -20,7 +20,7 @@ public class CurrencyEntity {
     private String title;
     private String description;
 
-    private CurrencyEntity() {
+    public CurrencyEntity() {
     }
 
     public CurrencyEntity(UUID uuid, LocalDateTime dt_create,

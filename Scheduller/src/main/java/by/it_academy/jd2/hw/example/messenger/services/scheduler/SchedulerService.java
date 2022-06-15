@@ -4,6 +4,7 @@ import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
 import by.it_academy.jd2.hw.example.messenger.services.api.ISchedulerService;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import org.quartz.*;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
@@ -90,35 +91,39 @@ public class SchedulerService implements ISchedulerService {
             }
 
 
-        if (ssb != null) {
-            builder.withSchedule(ssb.repeatForever());
-        } else if (csb != null) {
-            builder.withSchedule(csb);
+            if (ssb != null) {
+                builder.withSchedule(ssb.repeatForever());
+            } else if (csb != null) {
+                builder.withSchedule(csb);
+            }
+        }
+
+        if (schedule.getStop_time() != null) {
+            builder.endAt(this.conversionService.convert(schedule.getStop_time(), Date.class));
+        }
+
+        Trigger trigger = builder.build();
+
+        try {
+            this.scheduler.scheduleJob(job, trigger);
+        } catch (SchedulerException e) {
+            throw new RuntimeException("Ошибка создания запланированной операции", e);
         }
     }
 
-        if (schedule.getStop_time() != null) {
-        builder.endAt(this.conversionService.convert(schedule.getStop_time(), Date.class));
-    }
-
-    Trigger trigger = builder.build();
-
+    @Override
+    public void update(UUID uuidOperation, LocalDateTime dt_update,
+                       ScheduledOperation scheduledOperation) {
+        //удаляем старую запись
         try {
-        this.scheduler.scheduleJob(job, trigger);
-    } catch (SchedulerException e) {
-        throw new RuntimeException("Ошибка создания запланированной операции", e);
-    }
+            scheduler.deleteJob(new JobKey(uuidOperation.toString(), "operations"));
+        } catch (SchedulerException e) {
+            throw new RuntimeException("Ошибка удаления старого шедулера");
+        }
+        //обновить запись в бд ScheduledOperation
+        //нет обновлять надо отдельно в контроллере!!!
 
-
-
-
-
-
-
-
-
-
-
-
-    }
+        //создать новый шедулер
+        this.create(scheduledOperation);
+        }
 }

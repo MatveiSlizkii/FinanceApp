@@ -9,3 +9,5 @@ spring:
       prefix: /views/
       suffix: .jsp
 
+classifier_currency_url : http://localhost:8081/api/classifier/close/currency/
+classifier_category_url : http://localhost:8081/api/classifier/close/operation/category/

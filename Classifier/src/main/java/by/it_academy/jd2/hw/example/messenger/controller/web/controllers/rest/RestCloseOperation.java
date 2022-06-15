@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -30,18 +31,26 @@ public class RestCloseOperation {
             method = RequestMethod.GET
     )
     @ResponseBody
-    public List<Currency> index(){
-
+    public List<Currency> index() {
         return currencyService.getAllList();
     }
+
     @RequestMapping(
             value = {"/operation", "/operation/"},
             method = RequestMethod.GET
     )
     @ResponseBody
-    public List<OperationCategory> index1(){
+    public List<OperationCategory> index1() {
         return operationCategoryService.getAllList();
+    }
 
+    @RequestMapping(
+            value = {"/currency/{uuid}", "/currency/{uuid}/"},
+            method = RequestMethod.GET
+    )
+    @ResponseBody
+    public Currency index2(@PathVariable (name = "uuid") UUID uuid) {
+        return currencyService.get(uuid);
     }
 
 

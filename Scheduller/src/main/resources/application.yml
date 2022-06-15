@@ -18,3 +18,8 @@ spring:
       "org.quartz.jobStore.tablePrefix" : "quartz.QRTZ_"
 server:
   port : 8082
+
+account_url : http://account-service:8080/account
+account_backend_url : http://account-service:8080/backend/account
+classifier_currency_url : http://classifier-service:8080/backend/classifier/currency
+classifier_category_url : http://classifier-service:8080/backend/classifier/operation/category

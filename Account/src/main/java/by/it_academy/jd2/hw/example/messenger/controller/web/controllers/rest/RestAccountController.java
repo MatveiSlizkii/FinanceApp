@@ -3,6 +3,7 @@ package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Account;
 import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -61,11 +63,15 @@ public class RestAccountController {
     @ResponseStatus(HttpStatus.OK)
     public Account update(@RequestBody Account account,
                           @PathVariable UUID uuid,
-                          @PathVariable Long dt_update) {
-        //TODO проверить все ли данные валидны в аккаунте
+                          @PathVariable String dt_update) {
+        try {
+            Long dtUpdateLong = Long.parseLong(dt_update);
+            conversionService.convert(dtUpdateLong, LocalDateTime.class);
+        } catch (NumberFormatException e){
+            throw new ValidationException("Переданы данная версия не соответствует формату");
+        }
         //TODO проверить есть ли такой уид
-        //TODO проверить парсится ли дт апдейт
 
-        return accountService.update(uuid, account, dt_update);
+        return accountService.update(uuid, account, Long.parseLong(dt_update));
     }
 }

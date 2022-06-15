@@ -9,6 +9,7 @@ import by.it_academy.jd2.hw.example.messenger.dao.entity.BalanceEntity;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Account;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.AccountEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -45,12 +46,17 @@ public class AccountService implements IAccountService {
         this.restTemplate = new RestTemplate();
     }
 
+    @Value("${classifier_currency_url}")
+    private String currencyUrl;
+
+
     @Override
     @Transactional
     public Account get(UUID uuid) {
 
         return conversionService.convert(accountStorage.getById(uuid), Account.class);
     }
+
     //TODO перепроверить аннотацию транзакция
     @Override
     //@Transactional
@@ -89,7 +95,7 @@ public class AccountService implements IAccountService {
         accountStorage.findAll().forEach((o) -> accounts.add(
                 conversionService.convert(o, Account.class)));
 
-        int start = (int)pageable.getOffset();
+        int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), accounts.size());
         return new PageImpl<>(accounts.subList(start, end), pageable, accounts.size());
     }
@@ -98,31 +104,21 @@ public class AccountService implements IAccountService {
     @Transactional
     public Account update(UUID uuid, Account accountRaw, Long dt_update) {
 
+        List<ValidationError> errors = new ArrayList<>();
 
         LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
         if (!accountStorage.getById(uuid).getDtUpdate().equals(checkDateTime)) {
-            throw new IllegalArgumentException("Данная версия для обновления устарела," +
-                    "обновите, пожалуйста страницу");
+            errors.add(new ValidationError("dt_update", MessageError.MISSING_OBJECT));
+        }
+
+        this.checkAccount(accountRaw, errors);
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
         }
 
         AccountEntity accountEntity = em.find(AccountEntity.class, uuid);
         em.refresh(accountEntity, LockModeType.OPTIMISTIC);
-        if (accountRaw.getTitle() != null) {
-            accountEntity.setTitle(accountRaw.getTitle());
-        }
-        if (accountRaw.getDescription() != null) {
-            accountEntity.setDescription(accountRaw.getDescription());
-        }
-        if (accountRaw.getType() != null) {
-            accountEntity.setType(accountRaw.getType().name());
-        }
-        if (accountRaw.getCurrency() != null) {
-            accountEntity.setCurrency(accountRaw.getCurrency());
-        }
-        if (accountRaw.getBalance() != null){
-            updateBalance(accountEntity.getUuid(), accountRaw.getBalance());
-        }
-
         //TODO ошибка если не удалось обновить систему
 
         return conversionService.convert(accountStorage.getById(uuid), Account.class);
@@ -140,7 +136,6 @@ public class AccountService implements IAccountService {
         return balanceEntity;
     }
 
-    //TODO сделать отдельный чек на титл и курренси
 
     private void checkAccount(Account account, List<ValidationError> errors) {
 
@@ -160,7 +155,7 @@ public class AccountService implements IAccountService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Object> entity = new HttpEntity<>(headers);
             try {
-                String currencyClassifierUrl = "http://localhost:8081/classifier/currency/" + account.getCurrency() + "/";
+                String currencyClassifierUrl = currencyUrl + account.getCurrency() + "/";
                 this.restTemplate.exchange(currencyClassifierUrl, HttpMethod.GET, entity, String.class);
             } catch (HttpStatusCodeException e) {
                 errors.add(new ValidationError("currency", MessageError.ID_NOT_EXIST));
