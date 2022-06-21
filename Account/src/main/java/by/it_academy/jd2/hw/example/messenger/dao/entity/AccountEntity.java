@@ -1,6 +1,7 @@
 package by.it_academy.jd2.hw.example.messenger.dao.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
@@ -31,6 +32,9 @@ public class AccountEntity {
     @OneToOne
     @JoinColumn(name = "balance", nullable = false)
     private BalanceEntity balance;
+    @JsonIgnore
+    @Column (name = "user")
+    private String user;
 
     public AccountEntity() {
     }
@@ -39,7 +43,8 @@ public class AccountEntity {
                          LocalDateTime dtUpdate,
                          String title, String description,
                          String type, UUID currency,
-                         BalanceEntity balance) {
+                         BalanceEntity balance,
+                         String user) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -48,6 +53,7 @@ public class AccountEntity {
         this.type = type;
         this.currency = currency;
         this.balance = balance;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -114,17 +120,26 @@ public class AccountEntity {
         this.balance = balance;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
-        return "Account{" +
-                "id=" + uuid +
-                ", dt_create=" + dtCreate +
-                ", dt_update=" + dtUpdate +
+        return "AccountEntity{" +
+                "uuid=" + uuid +
+                ", dtCreate=" + dtCreate +
+                ", dtUpdate=" + dtUpdate +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", type=" + type +
+                ", type='" + type + '\'' +
                 ", currency=" + currency +
                 ", balance=" + balance +
+                ", user='" + user + '\'' +
                 '}';
     }
 
@@ -137,6 +152,7 @@ public class AccountEntity {
         private String type;
         private UUID currency;
         private BalanceEntity balance;
+        private String user;
 
 
         private Builder() {
@@ -192,12 +208,17 @@ public class AccountEntity {
             return this;
         }
 
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public AccountEntity build() {
-            return new AccountEntity(uuid, dtCreate, dtUpdate, title, description, type, currency, balance);
+            return new AccountEntity(uuid, dtCreate, dtUpdate, title, description, type, currency, balance, user);
         }
 
     }

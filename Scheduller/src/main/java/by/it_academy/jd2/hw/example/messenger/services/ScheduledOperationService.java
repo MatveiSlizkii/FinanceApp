@@ -64,12 +64,14 @@ public class ScheduledOperationService implements IScheduledOperationService {
 
     @Override
     public ScheduledOperation get(UUID uuid) {
+        //TODO проверка принадлежит ли операция данномк пользователю
         return conversionService.convert(scheduledOperationStorage.getById(uuid), ScheduledOperation.class);
     }
 
     @Override
     @Transactional
     public ScheduledOperation save(ScheduledOperation scheduledOperation) {
+        //TODO чек операции
         if (scheduledOperation == null) {
             throw new ValidationException(new ValidationError("scheduledOperation", MessageError.MISSING_OBJECT));
         }
@@ -96,6 +98,7 @@ public class ScheduledOperationService implements IScheduledOperationService {
 
     @Override
     public Page<ScheduledOperation> getAll(Pageable pageable) {
+        //TODO перебить с использованием JWT
         List<ScheduledOperation> scheduledOperations = new ArrayList<>();
         scheduledOperationStorage.findAll().forEach((o)->
                 scheduledOperations.add(conversionService.convert(o, ScheduledOperation.class)));
@@ -107,10 +110,14 @@ public class ScheduledOperationService implements IScheduledOperationService {
     @Override
     public ScheduledOperation update(UUID uuid, ScheduledOperation scheduledOperationRaw) {
 
+        //TODO чек операции на JWT
+        //TODO чек уида
+
         List<ValidationError> errors = new ArrayList<>();
 
         ScheduledOperationEntity scheduledOperationEntity = em.find(ScheduledOperationEntity.class, uuid);
         em.refresh(scheduledOperationEntity, LockModeType.OPTIMISTIC);
+        //TODO перебить нормально
 
         if (scheduledOperationRaw.getSchedule() != null) {
             scheduledOperationEntity.setSchedule(scheduledOperationRaw.getSchedule().getUuid());

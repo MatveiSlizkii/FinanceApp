@@ -21,6 +21,8 @@ public class DataReport implements IDataReport {
 
     @Override
     public Map<UUID, String> getMapCurrency() {
+        //TODO перебиь на нормальную ссылку
+        //TODO возможно этот класс не нужен брать как кпример в аккаунте
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
                         "http://localhost:8081/api/classifier/close/currency",
@@ -35,7 +37,8 @@ public class DataReport implements IDataReport {
 
     @Override
     public Account getAccounts(UUID accountUuid) {
-
+        //TODO перебить на нормальную ссылку
+        //TODO возможно этот класс не нужен брать как кпример в аккаунте
         ResponseEntity<Map> response3 =
                 restTemplate.getForEntity(
                         "http://localhost:8080/api/account/" + accountUuid,
@@ -56,6 +59,8 @@ public class DataReport implements IDataReport {
 
     @Override
     public Map<UUID, String> getMapOperationCategory() {
+        //TODO перебить на нормальную ссылку
+        //TODO возможно этот класс не нужен брать как кпример в аккаунте
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
                         "http://localhost:8081/api/classifier/close/operation",
@@ -71,7 +76,7 @@ public class DataReport implements IDataReport {
 
     @Override
     public List<Operation> getOperations(UUID accountUuid, LocalDateTime to, LocalDateTime from) {
-
+        //TODO JWT
         Long toLong = to.toInstant(TimeZone.getDefault().toZoneId().
                 getRules().getOffset(to)).toEpochMilli();
         Long fromLong = from.toInstant(TimeZone.getDefault().toZoneId().
@@ -79,7 +84,7 @@ public class DataReport implements IDataReport {
 
         Map<UUID, String> nameOperationCategory = getMapOperationCategory();
         List<Operation> operationList = new ArrayList<>();
-
+        //TODO перебить на норм ссылку
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
                         "http://localhost:8080/api/account/close?to=" + toLong + "&from=" + fromLong + "&uuid=" + accountUuid,

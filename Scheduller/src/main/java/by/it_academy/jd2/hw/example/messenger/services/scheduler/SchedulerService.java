@@ -28,6 +28,7 @@ public class SchedulerService implements ISchedulerService {
 
     @Override
     public void create(ScheduledOperation scheduledOperation) {
+        //TODO чек шедуль операции
         Schedule schedule = scheduledOperation.getSchedule();
         Operation operation = scheduledOperation.getOperation();
         UUID idScheduledOperation = operation.getUuid();
@@ -114,12 +115,15 @@ public class SchedulerService implements ISchedulerService {
     @Override
     public void update(UUID uuidOperation, LocalDateTime dt_update,
                        ScheduledOperation scheduledOperation) {
+        //TODO перебить ошибку
+        //TODO сверить ласт апдейт
         //удаляем старую запись
         try {
             scheduler.deleteJob(new JobKey(uuidOperation.toString(), "operations"));
         } catch (SchedulerException e) {
             throw new RuntimeException("Ошибка удаления старого шедулера");
         }
+        //TODO перепроверить логику
         //обновить запись в бд ScheduledOperation
         //нет обновлять надо отдельно в контроллере!!!
 

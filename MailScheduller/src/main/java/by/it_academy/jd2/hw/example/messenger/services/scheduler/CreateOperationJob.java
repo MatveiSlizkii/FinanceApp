@@ -37,7 +37,7 @@ public class CreateOperationJob implements Job {
         String idReport = context.getMergedJobDataMap().getString("report");
         ScheduledReport scheduledReport = scheduledReportService.get(UUID.fromString(idReport));
 
-        //фигачим логику построение периода отчета
+        //делаем логику построение периода отчета
         Report report = scheduledReport.getReport();
         Schedule schedule = scheduledReport.getSchedule();
         LocalDateTime toOld = report.getTo();

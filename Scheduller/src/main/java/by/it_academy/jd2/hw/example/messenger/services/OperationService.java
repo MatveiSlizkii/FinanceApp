@@ -34,6 +34,7 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation get(UUID id) {
+        //TODO проверка принадлежит ли операция данномк пользователю
         return conversionService.convert(operationStorage.getById(id), Operation.class);
     }
 
@@ -42,6 +43,7 @@ public class OperationService implements IOperationService {
     public Operation save(Operation operation) {
 //        IValidateArgument<OperationEntity> validateArgument = new ValidateOperation();
 //        validateArgument.validate(operationEntity);
+        //TODO чек операции на предмет всего
         operation.setUuid(UUID.randomUUID());
         operation.setDt_create(LocalDateTime.now());
         operation.setDt_update(LocalDateTime.now());
@@ -53,6 +55,7 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Page<Operation> getAll(Pageable pageable) {
+        //TODO переписать с учетом JWT
         List<Operation> operations = new ArrayList<>();
         operationStorage.findAll().forEach((o)->
                 operations.add(conversionService.convert(o, Operation.class)));
@@ -65,9 +68,10 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation update(UUID uuid, Operation operationRaw) {
+        //TODO проверка принадлежит ли операция данномк пользователю
         OperationEntity operationEntity = em.find(OperationEntity.class, uuid);
         em.refresh(operationEntity, LockModeType.OPTIMISTIC);
-
+        //TODO переписать через чек операции
         if (operationRaw.getAccount() != null) {
             operationEntity.setAccount(operationRaw.getAccount());
         }

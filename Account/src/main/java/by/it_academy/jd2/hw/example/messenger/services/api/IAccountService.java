@@ -13,4 +13,5 @@ public interface IAccountService {
     Page<Account> getAll(Pageable pageable);
     Account update (UUID uuid, Account account, Long dt_update);
     BalanceEntity updateBalance (UUID uuid, Double value);
+    boolean checkAccountByUser (UUID uuidAccount, String login);
 }

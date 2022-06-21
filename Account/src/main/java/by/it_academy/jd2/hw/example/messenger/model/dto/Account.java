@@ -24,6 +24,7 @@ public class Account {
     private TypeAccount type;
     private UUID currency;
     private Double balance;
+    private String user;
 
     public Account() {
     }
@@ -31,7 +32,7 @@ public class Account {
     public Account(UUID uuid, LocalDateTime dt_create,
                    LocalDateTime dt_update, String title,
                    String description, TypeAccount type,
-                   UUID currency, Double balance) {
+                   UUID currency, Double balance, String user) {
         this.uuid = uuid;
         this.dt_create = dt_create;
         this.dt_update = dt_update;
@@ -40,6 +41,7 @@ public class Account {
         this.type = type;
         this.currency = currency;
         this.balance = balance;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -107,17 +109,26 @@ public class Account {
         this.balance = balance;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
         return "Account{" +
                 "uuid=" + uuid +
-                ", dt_createddddd=" + dt_create +
+                ", dt_create=" + dt_create +
                 ", dt_update=" + dt_update +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", type='" + type + '\'' +
+                ", type=" + type +
                 ", currency=" + currency +
                 ", balance=" + balance +
+                ", user='" + user + '\'' +
                 '}';
     }
 
@@ -130,6 +141,7 @@ public class Account {
         private TypeAccount type;
         private UUID currency;
         private Double balance;
+        private String user;
 
         private Builder() {
         }
@@ -175,12 +187,17 @@ public class Account {
             return this;
         }
 
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public Account build() {
-            return new Account(uuid, dt_create, dt_update, title, description, type, currency, balance);
+            return new Account(uuid, dt_create, dt_update, title, description, type, currency, balance, user);
         }
 
     }

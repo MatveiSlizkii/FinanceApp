@@ -58,12 +58,15 @@ public class ScheduledReportService implements IScheduledReportService {
     @Override
     public ScheduledReport get(UUID uuid) {
         //TODO ошибка не найдено
+        //TODO проверить твои ли аккаунты
         ScheduledReportEntity scheduledReportEntity = scheduledReportStorage.getById(uuid);
         return conversionService.convert(scheduledReportEntity, ScheduledReport.class);
     }
 
     @Override
     public ScheduledReport updateReport(UUID uuid, Report reportRaw) {
+        //TODO проверить ууид
+        //TODO проверить репорт
         ScheduledReportEntity sre = em.find(ScheduledReportEntity.class, uuid);
         em.refresh(sre, LockModeType.OPTIMISTIC);
 

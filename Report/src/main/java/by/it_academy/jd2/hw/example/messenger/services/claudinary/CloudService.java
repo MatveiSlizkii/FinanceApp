@@ -41,6 +41,7 @@ public class CloudService implements ICloudStorage {
     public byte[] download(String link) {
         try (BufferedInputStream bis = new BufferedInputStream(new URL(link).openStream())) {
             byte[] bytes = IOUtils.toByteArray(bis);
+            //TODO подумать над названиями файла
             File file = new File("test.xls");
             OutputStream os = new FileOutputStream(file);
             os.write(bytes);

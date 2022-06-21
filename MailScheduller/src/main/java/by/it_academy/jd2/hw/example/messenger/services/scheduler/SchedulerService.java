@@ -27,6 +27,7 @@ public class SchedulerService implements ISchedulerService {
 
     @Override
     public void create(ScheduledReport ScheduledReport) {
+        //TODO порверить на валидность шедулед репорт
         Schedule schedule = ScheduledReport.getSchedule();
         Report report = ScheduledReport.getReport();
         UUID idScheduledReport = ScheduledReport.getUuid();
@@ -87,7 +88,7 @@ public class SchedulerService implements ISchedulerService {
         }
 
         Trigger trigger = builder.build();
-
+        //TODO изменить ошибку
         try {
             this.scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException e) {

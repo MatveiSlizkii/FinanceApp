@@ -76,7 +76,8 @@ public class RestReportController {
     public Report create(@PathVariable(name = "type")ReportType type,
                         @RequestBody Map<String, Object> params) throws IOException {
 
-
+        //TODO проверить через коллекцию
+        //TODO чеки на то что лежит в параметрах с учетом юзера
         Report report = reportService.save(type, params);
 
         //TODO проверка на сущетсвует ли такой тип

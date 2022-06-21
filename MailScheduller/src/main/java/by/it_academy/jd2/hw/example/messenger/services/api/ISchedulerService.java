@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ISchedulerService {
     void create(ScheduledReport ScheduledReport);
+    //TODO сделать обновление шедулера
 }

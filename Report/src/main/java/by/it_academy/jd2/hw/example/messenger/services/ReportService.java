@@ -35,7 +35,7 @@ public class ReportService implements IReportService {
 
     @PersistenceContext
     private EntityManager em;
-
+    //TODO перебить ентити менеджер
     public ReportService(IReportStorage reportStorage, ConversionService conversionService,
                          ReportHandlerFactory handlerFactory, ICloudStorage cloud) {
         this.reportStorage = reportStorage;
@@ -90,6 +90,7 @@ public class ReportService implements IReportService {
 
     @Override
     public Report get(UUID uuid) {
+        //TODO JWT
         ReportEntity reportEntity = reportStorage.getById(uuid);
         System.out.println();
         return conversionService.convert(reportEntity, Report.class);
@@ -98,6 +99,8 @@ public class ReportService implements IReportService {
     @Override
     @Transactional
     public Page<Report> getAll(Pageable pageable) {
+        //TODO JWT
+
         List<Report> reports = new ArrayList<>();
         reportStorage.findAll().forEach((o) ->
                 reports.add(conversionService.convert(o, Report.class)));
@@ -109,9 +112,11 @@ public class ReportService implements IReportService {
 
     @Override
     public Report upgrade(Report reportRaw) {
-
+        //TODO чек репорта
+        //TODO есть ли такой ууид
         ReportEntity reportEntity = em.find(ReportEntity.class, reportRaw.getUuid());
         em.refresh(reportEntity, LockModeType.OPTIMISTIC);
+
         if (reportRaw.getStatus() != null) {
             reportEntity.setStatus(reportRaw.getStatus());
         }

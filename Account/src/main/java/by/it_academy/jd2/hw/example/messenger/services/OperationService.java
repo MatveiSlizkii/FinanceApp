@@ -1,11 +1,9 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
-import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.*;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IOperationStorage;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.OperationEntity;
-import by.it_academy.jd2.hw.example.messenger.services.api.IAccountService;
-import by.it_academy.jd2.hw.example.messenger.services.api.IOperationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
@@ -34,17 +32,21 @@ public class OperationService implements IOperationService {
     private final IAccountService accountService;
     private final EntityManager em;
     private final RestTemplate restTemplate;
+    private final UserHolder userHolder;
 
     public OperationService(IOperationStorage operationStorage,
                             ConversionService conversionService,
                             IAccountService accountService,
-                            EntityManager em) {
+                            EntityManager em,
+                            UserHolder userHolder) {
         this.operationStorage = operationStorage;
         this.conversionService = conversionService;
         this.accountService = accountService;
         this.restTemplate = new RestTemplate();
         this.em = em;
+        this.userHolder = userHolder;
     }
+
     @Value("${classifier_currency_url}")
     private String currencyUrl;
 
@@ -55,12 +57,18 @@ public class OperationService implements IOperationService {
     @Transactional
     public Operation get(UUID uuid) {
         //TODO навесить трай кетч существует ли операция
+        //TODO принадлежит ли операция счету который принадлежит юзеру
         return conversionService.convert(operationStorage.findByUuidAccount(uuid), Operation.class);
     }
 
     @Override
     @Transactional
     public Operation save(Operation operation) {
+        List<ValidationError> errors = new ArrayList<>();
+        this.checkOperation(operation, errors);
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         LocalDateTime timeNow = LocalDateTime.now();
         operation.setUuid(UUID.randomUUID());
         operation.setDtCreate(timeNow);
@@ -74,6 +82,7 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Page<Operation> getAll(Pageable pageable) {
+        //TODO вывести только те операции что принадлежат юзеру
         List<Operation> operations = new ArrayList<>();
         operationStorage.findAll().forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
@@ -86,6 +95,14 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Page<Operation> getByUuidAccount(UUID uuidAccount, Pageable pageable) {
+        String login = this.userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        if (!accountService.checkAccountByUser(uuidAccount, login)) {
+            errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         List<Operation> operations = new ArrayList<>();
         operationStorage.findByUuidAccount(uuidAccount).forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
@@ -96,16 +113,30 @@ public class OperationService implements IOperationService {
 
     @Override
     @Transactional
-    public Operation update(UUID uuid, Operation operationRaw, Long dt_update) {
+    public Operation update(UUID uuidOperation, Operation operationRaw, Long dt_update) {
+        //TODO переделать как у юзера
+        String login = this.userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        this.checkOperation(operationRaw, errors);
+        if (!accountService.checkAccountByUser(operationRaw.getUuidAccount(), login)) {
+            errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
-
-        if (!operationStorage.getById(uuid).getDtUpdate().equals(checkDateTime)) {
+        if (!operationStorage.getById(uuidOperation).getDtUpdate().equals(checkDateTime)) {
             throw new IllegalArgumentException("Данная версия для обновления устарела," +
                     "обновите, пожалуйста страницу");
         }
-        OperationEntity operationEntity = em.find(OperationEntity.class, uuid);
+        OperationEntity operationEntity = em.find(OperationEntity.class, uuidOperation);
         em.refresh(operationEntity, LockModeType.OPTIMISTIC);
-
+        if (!accountService.checkAccountByUser(operationEntity.getUuidAccount(), login)) {
+            errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         Double valueFinal = operationRaw.getValue() - operationEntity.getValue();
         if (operationRaw.getDate() != null) {
             operationEntity.setDate(operationRaw.getDtCreate());
@@ -133,12 +164,19 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation delete(UUID uuid, Long dt_update) {
-
+        //TODO приналдежит ли операцию счету юзера
+        String login = this.userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        if (!accountService.checkAccountByUser(operationStorage.getById(uuid).getUuidAccount(), login)) {
+            errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
+        }
         LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
 
         if (!operationStorage.getById(uuid).equals(checkDateTime)) {
-            throw new IllegalArgumentException("Данная версия для обновления устарела," +
-                    "обновите, пожалуйста страницу");
+            errors.add(new ValidationError("dt_update", MessageError.INVALID_DT_UPDATE));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
         }
 
         OperationEntity operationEntity = em.find(OperationEntity.class, uuid);
@@ -150,6 +188,16 @@ public class OperationService implements IOperationService {
 
     @Override
     public List<Operation> getBetweenDates(LocalDateTime to, LocalDateTime from, UUID uuidAccount) {
+        //TODO пустой ли лист операций или несуществующий аккаунт
+        String login = this.userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        if (!accountService.checkAccountByUser(uuidAccount, login)) {
+            errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         List<Operation> operations = new ArrayList<>();
         List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
         operationEntities.forEach((o) ->
@@ -160,6 +208,7 @@ public class OperationService implements IOperationService {
 
     private void checkOperation(Operation operation, List<ValidationError> errors) {
 
+        String login = userHolder.getLoginFromContext();
         if (operation == null) {
             errors.add(new ValidationError("operation", "Не передан объект operation"));
             return;
@@ -195,17 +244,23 @@ public class OperationService implements IOperationService {
             }
         }
 
-        if (operation.getUuidAccount() == null){
+        if (operation.getUuidAccount() == null) {
             errors.add(new ValidationError("UuidAccount", "Не передан uuid счёта"));
-        } else
+        } else {
 
             //TODO проверить как я сделал, верный ли кетч
             try {
                 accountService.get(operation.getUuidAccount());
+            } catch (IllegalArgumentException e) {
+                errors.add(new ValidationError("UuidAccount", "Передан uuid несуществующего счёта"));
             }
-            catch (IllegalArgumentException e){
-            errors.add(new ValidationError("UuidAccount", "Передан uuid несуществующего счёта"));
+            if (!accountService.checkAccountByUser(operation.getUuidAccount(), login)) {
+                errors.add(new ValidationError("UuidAccount", "Передан uuid  которогу вы не имеете доступа"));
+            }
+
         }
-        }
+
+
     }
+}
 

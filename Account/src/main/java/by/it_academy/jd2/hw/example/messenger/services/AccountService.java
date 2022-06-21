@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
@@ -27,6 +28,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,15 +38,21 @@ public class AccountService implements IAccountService {
     private final IBalanceStorage balanceStorage;
     private final RestTemplate restTemplate;
     private final EntityManager em;
+    private final UserHolder userHolder;
+
+
 
     public AccountService(IAccountStorage accountStorage, ConversionService conversionService,
-                          IBalanceStorage balanceStorage, EntityManager em) {
+                          IBalanceStorage balanceStorage, EntityManager em, UserHolder userHolder) {
         this.accountStorage = accountStorage;
         this.conversionService = conversionService;
         this.balanceStorage = balanceStorage;
         this.em = em;
         this.restTemplate = new RestTemplate();
+        this.userHolder = userHolder;
     }
+
+
 
     @Value("${classifier_currency_url}")
     private String currencyUrl;
@@ -53,17 +61,37 @@ public class AccountService implements IAccountService {
     @Override
     @Transactional
     public Account get(UUID uuid) {
+        String login = this.userHolder.getLoginFromContext();
 
-        return conversionService.convert(accountStorage.getById(uuid), Account.class);
+        this.checkIdAccount(uuid);
+
+        AccountEntity entity;
+
+        try {
+            entity = this.accountStorage.findByUserAndUuid(login, uuid).get();
+        } catch (Exception e) {
+            throw new RuntimeException(MessageError.SQL_ERROR, e);
+        }
+
+        return this.conversionService.convert(entity, Account.class);
     }
 
     //TODO перепроверить аннотацию транзакция
     @Override
     //@Transactional
     public Account save(Account account) {
+        String login = userHolder.getLoginFromContext();
+
         List<ValidationError> errors = new ArrayList<>();
 
         this.checkAccount(account, errors);
+        try {
+            if (this.accountStorage.findByUserAndTitle(login, account.getTitle()).isPresent()) {
+                errors.add(new ValidationError("title (название счёта)", MessageError.NO_UNIQUE_FIELD));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(MessageError.SQL_ERROR, e);
+        }
 
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
@@ -90,9 +118,11 @@ public class AccountService implements IAccountService {
     @Override
     @Transactional
     public Page<Account> getAll(Pageable pageable) {
+        String login = this.userHolder.getLoginFromContext();
+
 
         List<Account> accounts = new ArrayList<>();
-        accountStorage.findAll().forEach((o) -> accounts.add(
+        accountStorage.findAllByUser(login).forEach((o) -> accounts.add(
                 conversionService.convert(o, Account.class)));
 
         int start = (int) pageable.getOffset();
@@ -104,7 +134,17 @@ public class AccountService implements IAccountService {
     @Transactional
     public Account update(UUID uuid, Account accountRaw, Long dt_update) {
 
+        String login = this.userHolder.getLoginFromContext();
+
         List<ValidationError> errors = new ArrayList<>();
+        try {
+            if (!this.accountStorage.existsAccountEntityByUserAndUuidd(login, uuid)) {
+                errors.add(new ValidationError("uuid счёта", MessageError.ID_NOT_EXIST));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(MessageError.SQL_ERROR, e);
+        }
+
 
         LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
         if (!accountStorage.getById(uuid).getDtUpdate().equals(checkDateTime)) {
@@ -118,6 +158,10 @@ public class AccountService implements IAccountService {
         }
 
         AccountEntity accountEntity = em.find(AccountEntity.class, uuid);
+        accountEntity.setTitle(accountRaw.getTitle());
+        accountEntity.setDescription(accountRaw.getDescription());
+        accountEntity.setCurrency(accountRaw.getCurrency());
+        accountEntity.setUser(accountRaw.getUser());
         em.refresh(accountEntity, LockModeType.OPTIMISTIC);
         //TODO ошибка если не удалось обновить систему
 
@@ -136,6 +180,10 @@ public class AccountService implements IAccountService {
         return balanceEntity;
     }
 
+    @Override
+    public boolean checkAccountByUser(UUID uuidAccount, String login) {
+        return accountStorage.existsAccountEntityByUserAndUuidd(login, uuidAccount);
+    }
 
     private void checkAccount(Account account, List<ValidationError> errors) {
 
@@ -153,9 +201,11 @@ public class AccountService implements IAccountService {
         } else {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            String currencyClassifierUrl = currencyUrl + account.getCurrency() + "/";
+            String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
+            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
             HttpEntity<Object> entity = new HttpEntity<>(headers);
             try {
-                String currencyClassifierUrl = currencyUrl + account.getCurrency() + "/";
                 this.restTemplate.exchange(currencyClassifierUrl, HttpMethod.GET, entity, String.class);
             } catch (HttpStatusCodeException e) {
                 errors.add(new ValidationError("currency", MessageError.ID_NOT_EXIST));
@@ -165,7 +215,37 @@ public class AccountService implements IAccountService {
         if (account.getTitle() == null || account.getTitle().isEmpty()) {
             errors.add(new ValidationError("title", MessageError.MISSING_FIELD));
         } else {
-            //TODO когда будет юзер чтобы проверяло название счета и юзера
+            Optional<AccountEntity> accountEntities= accountStorage.findByUserAndTitle(userHolder.getLoginFromContext(), account.getTitle());
+            if (!accountEntities.isEmpty()){
+                errors.add(new ValidationError("title", MessageError.MISSING_FIELD));
+            }
+        }
+    }
+
+    private void checkIdAccount(UUID idAccount, List<ValidationError> errors) {
+        String login = this.userHolder.getLoginFromContext();
+
+        if (idAccount == null) {
+            errors.add(new ValidationError("uuid счёта", MessageError.MISSING_FIELD));
+            return;
+        }
+
+        try {
+            if (!this.accountStorage.existsAccountEntityByUserAndUuidd(login, idAccount)) {
+                errors.add(new ValidationError("uuid счёта", MessageError.ID_NOT_EXIST));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(MessageError.SQL_ERROR, e);
+        }
+    }
+
+    private void checkIdAccount(UUID idAccount) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        this.checkIdAccount(idAccount, errors);
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
         }
     }
 

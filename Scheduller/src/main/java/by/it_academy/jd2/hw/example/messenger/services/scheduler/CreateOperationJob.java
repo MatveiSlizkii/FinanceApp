@@ -37,6 +37,7 @@ public class CreateOperationJob implements Job {
         String idOperation = context.getMergedJobDataMap().getString("operation");
         Operation operation = this.operationService.get(UUID.fromString(idOperation));
         OperationRequest operationRequest = conversionService.convert(operation, OperationRequest.class);
+        //TODO перебить на нормальную ссылку
         String url = "http://localhost:8080/api/account/" + operation.getAccount() + "/operation/";
         HttpEntity<OperationRequest> request = new HttpEntity<>(operationRequest);
         this.restTemplate.postForObject(url, request, OperationRequest.class);

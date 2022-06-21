@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Service
 public class ScheduleService implements IScheduleService {
     private final IScheduleStorage scheduleStorage;
@@ -32,11 +33,13 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public Schedule get(UUID uuid) {
+
         return conversionService.convert(scheduleStorage.getById(uuid), Schedule.class);
     }
 
     @Override
     public Schedule save(Schedule schedule) {
+        //TODO чек на валидность шедуля
         LocalDateTime localDateTime = LocalDateTime.now();
         schedule.setUuid(UUID.randomUUID());
         schedule.setDt_create(localDateTime);
@@ -47,19 +50,23 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public Page<Schedule> getAll(Pageable pageable) {
+        //TODO как-то перебить череч JWT
         List<Schedule> schedules = new ArrayList<>();
-        scheduleStorage.findAll().forEach((o)->
+        scheduleStorage.findAll().forEach((o) ->
                 schedules.add(conversionService.convert(o, Schedule.class)));
-        int start = (int)pageable.getOffset();
+        int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), schedules.size());
         return new PageImpl<>(schedules.subList(start, end), pageable, schedules.size());
     }
 
     @Override
     public Schedule update(UUID uuid, Schedule scheduleRaw) {
+        //TODO чек шедуля
+        //TODO чек уида
         ScheduleEntity scheduleEntity = em.find(ScheduleEntity.class, uuid);
         em.refresh(scheduleEntity, LockModeType.OPTIMISTIC);
-
+        //TODO переписать на норм варик
+        //TODO переписать с помощью удаления старого?????
         if (scheduleRaw.getStart_time() != null) {
             scheduleEntity.setStartTime(scheduleRaw.getStart_time());
         }
@@ -72,7 +79,6 @@ public class ScheduleService implements IScheduleService {
         if (scheduleRaw.getTime_unit() != null) {
             scheduleEntity.setTime_unit(scheduleRaw.getTime_unit().name());
         }
-
 
 
         return conversionService.convert(scheduleEntity, Schedule.class);
