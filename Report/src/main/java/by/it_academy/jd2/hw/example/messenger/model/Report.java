@@ -2,10 +2,8 @@ package by.it_academy.jd2.hw.example.messenger.model;
 
 import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.api.StatusType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 public class Report {
@@ -16,8 +14,8 @@ public class Report {
     private ReportType type;
     private String description;
     private String params;
-    @JsonIgnore
     private String excelReport;
+    private String user;
 
     private Report() {
     }
@@ -25,7 +23,7 @@ public class Report {
     public Report(UUID uuid, LocalDateTime dtCreate,
                   LocalDateTime dtUpdate, StatusType status,
                   ReportType type, String description,
-                  String params, String excelReport) {
+                  String params, String excelReport, String user) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -34,6 +32,7 @@ public class Report {
         this.description = description;
         this.params = params;
         this.excelReport = excelReport;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -100,6 +99,14 @@ public class Report {
         this.excelReport = excelReport;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     public static class Builder {
         private UUID uuid;
         private LocalDateTime dtCreate;
@@ -109,6 +116,7 @@ public class Report {
         private String description; //по человечески дб описано
         private String params;
         private String excelReport;
+        private String user;
 
         private Builder() {
         }
@@ -153,12 +161,17 @@ public class Report {
             return this;
         }
 
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public Report build() {
-            return new Report(uuid, dtCreate, dtUpdate, status, type, description, params, excelReport);
+            return new Report(uuid, dtCreate, dtUpdate, status, type, description, params, excelReport, user);
         }
     }
 }

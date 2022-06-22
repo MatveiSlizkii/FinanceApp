@@ -3,6 +3,7 @@ package by.it_academy.jd2.hw.example.messenger.services;
 import by.it_academy.jd2.hw.example.messenger.model.Account;
 import by.it_academy.jd2.hw.example.messenger.model.Operation;
 import by.it_academy.jd2.hw.example.messenger.services.api.IDataReport;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,13 +20,22 @@ public class DataReport implements IDataReport {
         this.restTemplate = new RestTemplate();
     }
 
+    @Value("${classifier_currency_url}")
+    private String currencyUrl;
+
+    @Value("${classifier_category_url}")
+    private String categoryUrl;
+
+    @Value("${account_url}")
+    private String accountUrl;
+    @Value("${account_to_from_url}")
+    private String accountToFromUrl;
+
     @Override
     public Map<UUID, String> getMapCurrency() {
-        //TODO перебиь на нормальную ссылку
-        //TODO возможно этот класс не нужен брать как кпример в аккаунте
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
-                        "http://localhost:8081/api/classifier/close/currency",
+                        currencyUrl,
                         Collection.class);
         Collection collectionCurrencyRaw = response.getBody();
         List<Map<String, String>> listCurrencyRaw2 = (List<Map<String, String>>) collectionCurrencyRaw;
@@ -36,12 +46,10 @@ public class DataReport implements IDataReport {
     }
 
     @Override
-    public Account getAccounts(UUID accountUuid) {
-        //TODO перебить на нормальную ссылку
-        //TODO возможно этот класс не нужен брать как кпример в аккаунте
+    public Account getAccount(UUID accountUuid) {
         ResponseEntity<Map> response3 =
                 restTemplate.getForEntity(
-                        "http://localhost:8080/api/account/" + accountUuid,
+                        accountUrl + accountUuid,
                         Map.class);
         Map<String, Object> raw = response3.getBody();
         Account account = Account.Builder.createBuilder()
@@ -59,11 +67,9 @@ public class DataReport implements IDataReport {
 
     @Override
     public Map<UUID, String> getMapOperationCategory() {
-        //TODO перебить на нормальную ссылку
-        //TODO возможно этот класс не нужен брать как кпример в аккаунте
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
-                        "http://localhost:8081/api/classifier/close/operation",
+                        categoryUrl,
                         Collection.class);
         Collection raw = response.getBody();
         List<Map<String, String>> listOperationCategory = (List<Map<String, String>>) raw;
@@ -75,19 +81,12 @@ public class DataReport implements IDataReport {
     }
 
     @Override
-    public List<Operation> getOperations(UUID accountUuid, LocalDateTime to, LocalDateTime from) {
-        //TODO JWT
-        Long toLong = to.toInstant(TimeZone.getDefault().toZoneId().
-                getRules().getOffset(to)).toEpochMilli();
-        Long fromLong = from.toInstant(TimeZone.getDefault().toZoneId().
-                getRules().getOffset(from)).toEpochMilli();
-
+    public List<Operation> getOperations(UUID accountUuid, Long to, Long from) {
         Map<UUID, String> nameOperationCategory = getMapOperationCategory();
         List<Operation> operationList = new ArrayList<>();
-        //TODO перебить на норм ссылку
         ResponseEntity<Collection> response =
                 restTemplate.getForEntity(
-                        "http://localhost:8080/api/account/close?to=" + toLong + "&from=" + fromLong + "&uuid=" + accountUuid,
+                        accountToFromUrl + "?to=" + to + "&from=" + from + "&uuid=" + accountUuid,
                         Collection.class);
         Collection raw = response.getBody();
 

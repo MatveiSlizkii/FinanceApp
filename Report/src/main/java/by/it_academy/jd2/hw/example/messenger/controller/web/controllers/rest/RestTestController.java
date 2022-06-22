@@ -5,7 +5,6 @@ import by.it_academy.jd2.hw.example.messenger.dao.entities.TestEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IReportService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 

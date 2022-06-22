@@ -3,13 +3,13 @@ package by.it_academy.jd2.hw.example.messenger.services.claudinary;
 import by.it_academy.jd2.hw.example.messenger.services.claudinary.api.ICloudStorage;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import org.apache.http.HttpEntity;
 import org.apache.poi.util.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,8 +41,8 @@ public class CloudService implements ICloudStorage {
     public byte[] download(String link) {
         try (BufferedInputStream bis = new BufferedInputStream(new URL(link).openStream())) {
             byte[] bytes = IOUtils.toByteArray(bis);
-            //TODO подумать над названиями файла
-            File file = new File("test.xls");
+            String fileName = "Report " + LocalDate.now();
+            File file = new File( fileName + ".xls");
             OutputStream os = new FileOutputStream(file);
             os.write(bytes);
             return bytes;

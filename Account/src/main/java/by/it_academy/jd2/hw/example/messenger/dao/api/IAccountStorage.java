@@ -13,6 +13,6 @@ public interface IAccountStorage extends JpaRepository<AccountEntity, UUID> {
     Optional<AccountEntity> findByUserAndUuid(String login, UUID uuid);
     Optional<AccountEntity> findByUserAndTitle(String login, String title);
     List<AccountEntity> findAllByUser (String login);
-    boolean existsAccountEntityByUserAndUuidd(String login, UUID uuidAccount);
+    boolean existsAccountEntityByUserAndUuid(String login, UUID uuidAccount);
 
 }

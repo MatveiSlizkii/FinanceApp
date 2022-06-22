@@ -12,8 +12,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -30,20 +28,15 @@ public class ByDateReportHandler implements IReportHandler {
         //сгенерили лист аккаунтов
         List<Account> accountList = new ArrayList<>();
         accountUuids.forEach((o) ->
-                accountList.add(reportHandler.getAccounts(o)));
+                accountList.add(reportHandler.getAccount(o)));
         //получаем мапу курренси
         Map<UUID, String> mapCurrency = reportHandler.getMapCurrency();
         //получаем лист листов операций
         List<List<Operation>> operationsList = new ArrayList<>();
-        long longTo = Long.parseLong(params.get("to").toString());
-        LocalDateTime localDateTimeTo = LocalDateTime.ofInstant(Instant.ofEpochMilli(longTo),
-                TimeZone.getDefault().toZoneId());
-        //преобразование даты From
-        long longFrom = Long.parseLong(params.get("from").toString());
-        LocalDateTime localDateTimeFrom = LocalDateTime.ofInstant(Instant.ofEpochMilli(longFrom),
-                TimeZone.getDefault().toZoneId());
+
+
         accountList.forEach((o) ->
-                operationsList.add(reportHandler.getOperations(o.getUuid(), localDateTimeTo, localDateTimeFrom)));
+                operationsList.add(reportHandler.getOperations(o.getUuid(), Long.parseLong(params.get("to").toString()), Long.parseLong(params.get("from").toString()))));
 
         //получили лист операций
         for (int i = 0; i < operationsList.size(); i++) {

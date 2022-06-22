@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class TestParseMap {
                 "f868a717-5ea6-435e-8703-6b2d87f5394c" +
                 "]");
         System.out.println(mainMapString.get("accounts"));
+        System.out.println(LocalDate.now());
 
 
     }

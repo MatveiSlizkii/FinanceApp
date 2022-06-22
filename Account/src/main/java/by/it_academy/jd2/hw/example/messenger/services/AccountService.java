@@ -138,7 +138,7 @@ public class AccountService implements IAccountService {
 
         List<ValidationError> errors = new ArrayList<>();
         try {
-            if (!this.accountStorage.existsAccountEntityByUserAndUuidd(login, uuid)) {
+            if (!this.accountStorage.existsAccountEntityByUserAndUuid(login, uuid)) {
                 errors.add(new ValidationError("uuid счёта", MessageError.ID_NOT_EXIST));
             }
         } catch (Exception e) {
@@ -181,8 +181,16 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    public List<UUID> uuidsAccountsByUser(String login) {
+        List<AccountEntity> accountEntities = accountStorage.findAllByUser(login);
+        List<UUID> uuidList = new ArrayList<>();
+        accountEntities.forEach((o)-> uuidList.add(o.getUuid()));
+        return uuidList;
+    }
+
+    @Override
     public boolean checkAccountByUser(UUID uuidAccount, String login) {
-        return accountStorage.existsAccountEntityByUserAndUuidd(login, uuidAccount);
+        return accountStorage.existsAccountEntityByUserAndUuid(login, uuidAccount);
     }
 
     private void checkAccount(Account account, List<ValidationError> errors) {
@@ -231,7 +239,7 @@ public class AccountService implements IAccountService {
         }
 
         try {
-            if (!this.accountStorage.existsAccountEntityByUserAndUuidd(login, idAccount)) {
+            if (!this.accountStorage.existsAccountEntityByUserAndUuid(login, idAccount)) {
                 errors.add(new ValidationError("uuid счёта", MessageError.ID_NOT_EXIST));
             }
         } catch (Exception e) {

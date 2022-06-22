@@ -13,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -57,10 +55,8 @@ public class RestReportController {
     )
     @ResponseBody
     public ResponseEntity<Resource> download (@PathVariable (name = "uuid")UUID uuid) {
-        //TODO валидность уида, сущетвует ли
         Report report = reportService.get(uuid);
         byte[] bytes = cloudStorage.download(report.getExcelReport());
-        //TODO получаем ссылку и скачиваем
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(new ByteArrayResource(bytes));

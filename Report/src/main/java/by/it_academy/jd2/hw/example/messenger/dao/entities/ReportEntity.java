@@ -2,6 +2,7 @@ package by.it_academy.jd2.hw.example.messenger.dao.entities;
 
 import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.api.StatusType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,8 +26,12 @@ public class ReportEntity {
     private String description; //по человечески дб описано
     @Column(name = "params")
     private String params;
+    @JsonIgnore
     @Column(name = "url_report")
     private String excelReport;
+    @JsonIgnore
+    @Column (name = "user")
+    private String user;
 
     public ReportEntity() {
     }
@@ -34,7 +39,7 @@ public class ReportEntity {
     public ReportEntity(UUID uuid, LocalDateTime dtCreate,
                         LocalDateTime dtUpdate, StatusType status,
                         ReportType type, String description,
-                        String params, String excelReport) {
+                        String params, String excelReport,String user) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -43,6 +48,7 @@ public class ReportEntity {
         this.description = description;
         this.params = params;
         this.excelReport = excelReport;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -109,6 +115,29 @@ public class ReportEntity {
         this.excelReport = excelReport;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    @Override
+    public String toString() {
+        return "ReportEntity{" +
+                "uuid=" + uuid +
+                ", dtCreate=" + dtCreate +
+                ", dtUpdate=" + dtUpdate +
+                ", status=" + status +
+                ", type=" + type +
+                ", description='" + description + '\'' +
+                ", params='" + params + '\'' +
+                ", excelReport='" + excelReport + '\'' +
+                ", user='" + user + '\'' +
+                '}';
+    }
+
     public static class Builder {
         private UUID uuid;
         private LocalDateTime dtCreate;
@@ -117,8 +146,8 @@ public class ReportEntity {
         private ReportType type;
         private String description;
         private String params;
-        //TODO возможно все таки мапу можно
         private String excelReport; //URL
+        private String user;
 
         private Builder() {
         }
@@ -164,12 +193,17 @@ public class ReportEntity {
             return this;
         }
 
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public ReportEntity build() {
-            return new ReportEntity(uuid,dtCreate, dtUpdate, status, type, description, params, excelReport);
+            return new ReportEntity(uuid,dtCreate, dtUpdate, status, type, description, params, excelReport, user);
         }
     }
 }

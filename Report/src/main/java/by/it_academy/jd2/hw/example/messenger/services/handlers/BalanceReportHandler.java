@@ -33,7 +33,7 @@ public class BalanceReportHandler implements IReportHandler {
         //сгенерили лист аккаунтов
         List<Account> accountList = new ArrayList<>();
         accountUuids.forEach((o) ->
-                accountList.add(reportHandler.getAccounts(o)));
+                accountList.add(reportHandler.getAccount(o)));
         //получаем мапу курренси
         Map<UUID, String> mapCurrency = reportHandler.getMapCurrency();
         //создаем Excel

@@ -1,11 +1,9 @@
 package by.it_academy.jd2.hw.example.messenger.dao.entities;
 
 
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Map;
 import java.util.UUID;
 @Entity
 @Table(name = "test", schema = "app")

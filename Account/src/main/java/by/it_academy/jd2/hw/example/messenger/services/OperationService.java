@@ -56,8 +56,14 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation get(UUID uuid) {
-        //TODO навесить трай кетч существует ли операция
-        //TODO принадлежит ли операция счету который принадлежит юзеру
+        String login = userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        if (!accountService.checkAccountByUser(operationStorage.getById(uuid).getUuidAccount(), login)) {
+            errors.add(new ValidationError("operation", "данной операции не существует или нет доступа"));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         return conversionService.convert(operationStorage.findByUuidAccount(uuid), Operation.class);
     }
 
@@ -82,11 +88,24 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Page<Operation> getAll(Pageable pageable) {
-        //TODO вывести только те операции что принадлежат юзеру
+        String login = userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+
+        List<UUID> uuidsAccounts = accountService.uuidsAccountsByUser(login);
+        List<OperationEntity> operationEntities = new ArrayList<>();
+
+        uuidsAccounts.forEach((o) ->
+                operationEntities.addAll(operationStorage.findByUuidAccount(o)));
         List<Operation> operations = new ArrayList<>();
-        operationStorage.findAll().forEach((o) ->
+        operationEntities.forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
 
+        if (operations.isEmpty()) {
+            errors.add(new ValidationError("operation", "у Вас еще нет операции на своих счетах"));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), operations.size());
         return new PageImpl<>(operations.subList(start, end), pageable, operations.size());
@@ -114,7 +133,6 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation update(UUID uuidOperation, Operation operationRaw, Long dt_update) {
-        //TODO переделать как у юзера
         String login = this.userHolder.getLoginFromContext();
         List<ValidationError> errors = new ArrayList<>();
         this.checkOperation(operationRaw, errors);
@@ -138,21 +156,13 @@ public class OperationService implements IOperationService {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
         Double valueFinal = operationRaw.getValue() - operationEntity.getValue();
-        if (operationRaw.getDate() != null) {
-            operationEntity.setDate(operationRaw.getDtCreate());
-        }
-        if (operationRaw.getDescription() != null) {
-            operationEntity.setDescription(operationRaw.getDescription());
-        }
-        if (operationRaw.getCategory() != null) {
-            operationEntity.setCategory(operationRaw.getCategory());
-        }
-        if (operationRaw.getValue() != null) {
-            operationEntity.setValue(operationRaw.getValue());
-        }
-        if (operationRaw.getCurrency() != null) {
-            operationEntity.setCurrency(operationRaw.getCurrency());
-        }
+        OperationEntity.Builder.createBuilder()
+                .setDate(operationRaw.getDtCreate())
+                .setDescription(operationRaw.getDescription())
+                .setCategory(operationRaw.getCategory())
+                .setValue(operationRaw.getValue())
+                .setCurrency(operationRaw.getCurrency())
+                .build();
 
         accountService.updateBalance(operationEntity.getUuidAccount(), valueFinal);
 
@@ -164,7 +174,6 @@ public class OperationService implements IOperationService {
     @Override
     @Transactional
     public Operation delete(UUID uuid, Long dt_update) {
-        //TODO приналдежит ли операцию счету юзера
         String login = this.userHolder.getLoginFromContext();
         List<ValidationError> errors = new ArrayList<>();
         if (!accountService.checkAccountByUser(operationStorage.getById(uuid).getUuidAccount(), login)) {
@@ -182,13 +191,12 @@ public class OperationService implements IOperationService {
         OperationEntity operationEntity = em.find(OperationEntity.class, uuid);
         em.refresh(operationEntity, LockModeType.OPTIMISTIC);
         operationStorage.delete(operationEntity);
-        //em.close(); // под вопросом надо ли она, скорее всего нет
         return conversionService.convert(operationEntity, Operation.class);
     }
 
     @Override
     public List<Operation> getBetweenDates(LocalDateTime to, LocalDateTime from, UUID uuidAccount) {
-        //TODO пустой ли лист операций или несуществующий аккаунт
+        //TODO пустой ли лист операций
         String login = this.userHolder.getLoginFromContext();
         List<ValidationError> errors = new ArrayList<>();
         if (!accountService.checkAccountByUser(uuidAccount, login)) {

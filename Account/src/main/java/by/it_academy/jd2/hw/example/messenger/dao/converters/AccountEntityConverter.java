@@ -4,7 +4,6 @@ import by.it_academy.jd2.hw.example.messenger.dao.api.IBalanceStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.BalanceEntity;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Account;
 import by.it_academy.jd2.hw.example.messenger.dao.entity.AccountEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

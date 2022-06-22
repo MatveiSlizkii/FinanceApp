@@ -109,17 +109,22 @@ public class RestCloseController {
     }
 
     @RequestMapping(
-            value = {"", "/"},
+            value = {"tofrom", "tofrom/"},
             method = RequestMethod.GET
     )
     @ResponseBody
-    public List<Operation> index(@RequestParam(name = "to") long toRaw,
-                                 @RequestParam(name = "from") long fromRaw,
-    @RequestParam (name = "uuid") UUID uuidAccount) {
-        LocalDateTime to = conversionService.convert(toRaw, LocalDateTime.class);
-        LocalDateTime from = conversionService.convert(fromRaw, LocalDateTime.class);
+    public List<Operation> index(@RequestParam(name = "to") String toRaw,
+                                 @RequestParam(name = "from") String fromRaw,
+                                 @RequestParam(name = "uuid") UUID uuidAccount) {
+        //TODO ошибки
+        LocalDateTime to = conversionService.convert(Long.parseLong(toRaw), LocalDateTime.class);
+        LocalDateTime from = conversionService.convert(Long.parseLong(fromRaw), LocalDateTime.class);
+        operationService.get(uuidAccount);
+
+
         return operationService.getBetweenDates(to, from, uuidAccount);
     }
+
     @RequestMapping(
             value = {"/privet", "/privet/"},
             method = RequestMethod.GET,

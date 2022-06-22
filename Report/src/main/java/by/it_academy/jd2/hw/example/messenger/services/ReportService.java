@@ -1,5 +1,7 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.services.claudinary.api.ICloudStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IReportStorage;
 import by.it_academy.jd2.hw.example.messenger.dao.entities.ReportEntity;
@@ -32,22 +34,26 @@ public class ReportService implements IReportService {
     private final RestTemplate restTemplate;
     private final ICloudStorage cloud;
     private final ReportHandlerFactory handlerFactory;
+    private final UserHolder userHolder;
 
     @PersistenceContext
     private EntityManager em;
+
     //TODO перебить ентити менеджер
     public ReportService(IReportStorage reportStorage, ConversionService conversionService,
-                         ReportHandlerFactory handlerFactory, ICloudStorage cloud) {
+                         ReportHandlerFactory handlerFactory, ICloudStorage cloud, UserHolder userHolder) {
         this.reportStorage = reportStorage;
         this.conversionService = conversionService;
         this.restTemplate = new RestTemplate();
         this.handlerFactory = handlerFactory;
         this.cloud = cloud;
+        this.userHolder = userHolder;
     }
 
     @Override
     @Transactional
     public Report save(ReportType reportType, Map<String, Object> params) throws IOException {
+
         //Генерация description
         String description;
         DateTimeFormatter formatters = DateTimeFormatter.ofPattern("d.MM.uuuu");
@@ -64,11 +70,11 @@ public class ReportService implements IReportService {
             String from = localDateTimeFrom.toLocalDate().format(formatters);
             description = "Дата совершения операции: " + to + " - " + from;
         }
-            //TODO генерим ексель файл
-            IReportHandler handler = this.handlerFactory.handler(reportType);
-            byte[] dataReport = handler.handle(params);
-            //TODO сохраняем в облаке и получаем ссылку
-            String urlExcel = cloud.upload(dataReport);
+
+        IReportHandler handler = this.handlerFactory.handler(reportType);
+        byte[] dataReport = handler.handle(params);
+
+        String urlExcel = cloud.upload(dataReport);
 
         LocalDateTime localDateTime = LocalDateTime.now();
         Report report = Report.Builder.createBuilder()
@@ -80,31 +86,48 @@ public class ReportService implements IReportService {
                 .setDescription(description)
                 .setParams(params.toString())
                 .setExcelReport(urlExcel)
+                .setUser(userHolder.getLoginFromContext())
                 .build();
 
         ReportEntity reportEntity = conversionService.convert(report, ReportEntity.class);
-        //TODO доделать сохранение
         reportStorage.save(reportEntity);
         return report;
     }
 
     @Override
     public Report get(UUID uuid) {
-        //TODO JWT
-        ReportEntity reportEntity = reportStorage.getById(uuid);
-        System.out.println();
+        String login = userHolder.getLoginFromContext();
+        List<ValidationError> errors = new ArrayList<>();
+        ReportEntity reportEntity = null;
+        try {
+            reportEntity = reportStorage.findByUuidAndUser(uuid, login);
+        } catch (RuntimeException e){
+            errors.add(new ValidationError("report",
+                    "данного отчета у пользователя не найденго"));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         return conversionService.convert(reportEntity, Report.class);
     }
 
     @Override
     @Transactional
     public Page<Report> getAll(Pageable pageable) {
-        //TODO JWT
+        List<ValidationError> errors = new ArrayList<>();
 
         List<Report> reports = new ArrayList<>();
-        reportStorage.findAll().forEach((o) ->
+
+        reportStorage.findAllByUser(userHolder.getLoginFromContext()).forEach((o) ->
                 reports.add(conversionService.convert(o, Report.class)));
-        int start = (int)pageable.getOffset();
+        if (reports.isEmpty()){
+            errors.add(new ValidationError("report", "У вас пока нет ни одного отчета"));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
+
+        int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), reports.size());
         return new PageImpl<>(reports.subList(start, end), pageable, reports.size());
 

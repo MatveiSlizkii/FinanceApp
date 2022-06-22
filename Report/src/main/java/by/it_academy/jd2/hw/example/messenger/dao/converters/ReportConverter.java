@@ -20,6 +20,7 @@ public class ReportConverter implements Converter<ReportEntity, Report> {
                 .setDescription(source.getDescription())
                 .setParams(source.getParams())
                 .setExcelReport(source.getExcelReport())
+                .setUser(source.getUser())
                 .build();
     }
 
