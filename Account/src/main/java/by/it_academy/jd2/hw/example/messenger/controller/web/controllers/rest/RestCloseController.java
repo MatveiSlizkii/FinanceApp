@@ -119,9 +119,6 @@ public class RestCloseController {
         //TODO ошибки
         LocalDateTime to = conversionService.convert(Long.parseLong(toRaw), LocalDateTime.class);
         LocalDateTime from = conversionService.convert(Long.parseLong(fromRaw), LocalDateTime.class);
-        operationService.get(uuidAccount);
-
-
         return operationService.getBetweenDates(to, from, uuidAccount);
     }
 

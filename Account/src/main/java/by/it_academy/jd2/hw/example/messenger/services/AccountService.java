@@ -93,6 +93,7 @@ public class AccountService implements IAccountService {
             throw new RuntimeException(MessageError.SQL_ERROR, e);
         }
 
+
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
@@ -153,6 +154,7 @@ public class AccountService implements IAccountService {
 
         this.checkAccount(accountRaw, errors);
 
+
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
@@ -207,12 +209,14 @@ public class AccountService implements IAccountService {
         if (account.getCurrency() == null) {
             errors.add(new ValidationError("currency", MessageError.MISSING_FIELD));
         } else {
+            //TODO написал правильно хидер
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            String currencyClassifierUrl = currencyUrl + account.getCurrency() + "/";
             String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
             headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
             HttpEntity<Object> entity = new HttpEntity<>(headers);
+
+            String currencyClassifierUrl = currencyUrl + account.getCurrency() + "/";
             try {
                 this.restTemplate.exchange(currencyClassifierUrl, HttpMethod.GET, entity, String.class);
             } catch (HttpStatusCodeException e) {

@@ -42,7 +42,6 @@ public class RestAccountController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public Account index(@PathVariable(name = "uuid") UUID uuid) {
-        //TODO ошибки есть ли этот уид
 
         return accountService.get(uuid);
     }
@@ -70,7 +69,6 @@ public class RestAccountController {
         } catch (NumberFormatException e){
             throw new ValidationException("Переданы данная версия не соответствует формату");
         }
-        //TODO проверить есть ли такой уид
 
         return accountService.update(uuid, account, Long.parseLong(dt_update));
     }

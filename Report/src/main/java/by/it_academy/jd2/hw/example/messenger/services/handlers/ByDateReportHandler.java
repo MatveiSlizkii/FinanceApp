@@ -3,6 +3,9 @@ package by.it_academy.jd2.hw.example.messenger.services.handlers;
 import by.it_academy.jd2.hw.example.messenger.model.Account;
 import by.it_academy.jd2.hw.example.messenger.model.Operation;
 import by.it_academy.jd2.hw.example.messenger.services.DataReport;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.services.handlers.api.IReportHandler;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -17,11 +20,24 @@ import java.util.*;
 
 public class ByDateReportHandler implements IReportHandler {
     @Override
-    public byte[] handle(Map<String, Object> params) throws IOException {
+    public byte[] handle(Map<String, Object> params){
+        List<ValidationError> errors = new ArrayList<>();
+        List<String> accountRaw = null;
+        Long toLong = null;
+        Long fromLong = null;
+        try {
+            accountRaw = (List<String>) params.get("accounts");
+            toLong = Long.parseLong(params.get("to").toString());
+            fromLong = Long.parseLong(params.get("from").toString());
+        } catch (IllegalArgumentException e){
+            errors.add(new ValidationError("params", MessageError.INCORRECT_PARAMS));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
         Workbook book1 = new HSSFWorkbook();
         DataReport reportHandler = new DataReport();
         //получение лист аккаунтов
-        List<String> accountRaw = (List<String>) params.get("accounts");
         List<UUID> accountUuids = new ArrayList<>();
         accountRaw.forEach((o) ->
                 accountUuids.add(UUID.fromString(o)));
@@ -29,21 +45,18 @@ public class ByDateReportHandler implements IReportHandler {
         List<Account> accountList = new ArrayList<>();
         accountUuids.forEach((o) ->
                 accountList.add(reportHandler.getAccount(o)));
-        //получаем мапу курренси
-        Map<UUID, String> mapCurrency = reportHandler.getMapCurrency();
         //получаем лист листов операций
         List<List<Operation>> operationsList = new ArrayList<>();
-
-
+        Long finalToLong = toLong;
+        Long finalFromLong = fromLong;
         accountList.forEach((o) ->
-                operationsList.add(reportHandler.getOperations(o.getUuid(), Long.parseLong(params.get("to").toString()), Long.parseLong(params.get("from").toString()))));
+                operationsList.add(reportHandler.getOperations(o.getUuid(), finalToLong, finalFromLong)));
 
         //получили лист операций
         for (int i = 0; i < operationsList.size(); i++) {
             Sheet sheet = book1.createSheet("Баланс " + accountList.get(i).getTitle());
             Row rawTitle = sheet.createRow(0);
             Cell headTitleMain = rawTitle.createCell(0);
-            //TODO: сделать нормальное описание отчетв
             headTitleMain.setCellValue("Отчет по датам" + "" + " на момент ");
 
             Row row0 = sheet.createRow(2);
@@ -110,12 +123,12 @@ public class ByDateReportHandler implements IReportHandler {
         }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        //TODO сделать ошибку
-
-
+        try {
             book1.write(bos);
-
             bos.close();
+        } catch (IOException e) {
+            throw new ValidationException("Не удалось сохранить ексель файл");
+        }
 
         byte[] bytes = bos.toByteArray();
         //claudinary.upload(bytes);

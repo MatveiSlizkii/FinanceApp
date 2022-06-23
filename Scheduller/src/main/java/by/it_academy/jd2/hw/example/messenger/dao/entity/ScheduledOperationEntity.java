@@ -1,4 +1,4 @@
-package by.it_academy.jd2.hw.example.messenger.model.entity;
+package by.it_academy.jd2.hw.example.messenger.dao.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -16,18 +16,20 @@ public class ScheduledOperationEntity {
     private LocalDateTime dt_update;
     private UUID schedule;
     private UUID operation;
+    private String user;
 
     public ScheduledOperationEntity() {
     }
 
     public ScheduledOperationEntity(UUID uuid, LocalDateTime dt_create,
                                     LocalDateTime dt_update, UUID schedule,
-                                    UUID operation) {
+                                    UUID operation, String user) {
         this.uuid = uuid;
         this.dt_create = dt_create;
         this.dt_update = dt_update;
         this.schedule = schedule;
         this.operation = operation;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -70,14 +72,23 @@ public class ScheduledOperationEntity {
         this.operation = operation;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
-        return "ScheduledOperation{" +
+        return "ScheduledOperationEntity{" +
                 "uuid=" + uuid +
-                ", dtCreate=" + dt_create +
-                ", dtUpdate=" + dt_update +
+                ", dt_create=" + dt_create +
+                ", dt_update=" + dt_update +
                 ", schedule=" + schedule +
                 ", operation=" + operation +
+                ", user='" + user + '\'' +
                 '}';
     }
 
@@ -87,6 +98,7 @@ public class ScheduledOperationEntity {
         private LocalDateTime dt_update;
         private UUID scheduleEntity;
         private UUID operationEntity;
+        private String user;
 
         private Builder() {
         }
@@ -116,12 +128,19 @@ public class ScheduledOperationEntity {
             return this;
         }
 
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public ScheduledOperationEntity build() {
-            return new ScheduledOperationEntity(uuid, dt_create, dt_update, scheduleEntity, operationEntity);
+            return new ScheduledOperationEntity(uuid, dt_create, dt_update, scheduleEntity, operationEntity, user);
         }
     }
 }
+
+

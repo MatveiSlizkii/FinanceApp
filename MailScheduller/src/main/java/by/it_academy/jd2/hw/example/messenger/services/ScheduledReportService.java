@@ -1,10 +1,14 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
 import by.it_academy.jd2.hw.example.messenger.dao.api.ScheduledReportStorage;
+import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Report;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
 import by.it_academy.jd2.hw.example.messenger.model.entity.ScheduledReportEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IScheduledReportService;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.services.scheduler.SchedulerService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
@@ -42,6 +46,7 @@ public class ScheduledReportService implements IScheduledReportService {
     @Transactional
     public ScheduledReport create(ScheduledReport scheduledReport) {
         //TODO ошибки
+        //TODO ошибка на то твои ли аккаунты
         LocalDateTime localDateTime = LocalDateTime.now();
         scheduledReport.setUuid(UUID.randomUUID());
         scheduledReport.setDtCreate(localDateTime);
@@ -67,6 +72,7 @@ public class ScheduledReportService implements IScheduledReportService {
     public ScheduledReport updateReport(UUID uuid, Report reportRaw) {
         //TODO проверить ууид
         //TODO проверить репорт
+        //TODO перебить как в шедулере
         ScheduledReportEntity sre = em.find(ScheduledReportEntity.class, uuid);
         em.refresh(sre, LockModeType.OPTIMISTIC);
 
@@ -88,6 +94,7 @@ public class ScheduledReportService implements IScheduledReportService {
 
     @Override
     public Page<ScheduledReport> getAll(Pageable pageable) {
+        //TODO согласно юзеру
         List<ScheduledReport> scheduledReports = new ArrayList<>();
         scheduledReportStorage.findAll().forEach((o) -> scheduledReports.add(
                 conversionService.convert(o, ScheduledReport.class)));
@@ -95,5 +102,29 @@ public class ScheduledReportService implements IScheduledReportService {
         int start = (int)pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), scheduledReports.size());
         return new PageImpl<>(scheduledReports.subList(start, end), pageable, scheduledReports.size());
+    }
+
+    boolean checkReport (Report report){
+        List<ValidationError> errors = new ArrayList<>();
+        //TODO перебить на лист
+        //TODO сделать проверку на юзера
+        if (report.getAccounts().length == 0){
+            errors.add(new ValidationError("accounts", MessageError.MISSING_FIELD));
+        }
+        if (report.getTo() == null){
+            errors.add(new ValidationError("to", MessageError.MISSING_FIELD));
+        }
+        if (report.getFrom() == null){
+            errors.add(new ValidationError("from", MessageError.MISSING_FIELD));
+        }
+        if (report.getReportType() == null){
+            errors.add(new ValidationError("reportType", MessageError.MISSING_FIELD));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
+
+        return true;
     }
 }

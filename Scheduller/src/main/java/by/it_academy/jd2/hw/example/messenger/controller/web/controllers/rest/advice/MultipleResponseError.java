@@ -1,7 +1,5 @@
-package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.advice;
+package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest.advice;
 
-
-import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 
 import java.util.List;
 

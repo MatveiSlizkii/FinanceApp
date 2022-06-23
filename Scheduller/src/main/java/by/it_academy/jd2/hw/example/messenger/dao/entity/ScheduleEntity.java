@@ -1,4 +1,4 @@
-package by.it_academy.jd2.hw.example.messenger.model.entity;
+package by.it_academy.jd2.hw.example.messenger.dao.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

@@ -2,6 +2,9 @@ package by.it_academy.jd2.hw.example.messenger.services.handlers;
 
 import by.it_academy.jd2.hw.example.messenger.model.Account;
 import by.it_academy.jd2.hw.example.messenger.services.DataReport;
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.services.handlers.api.IReportHandler;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -22,11 +25,25 @@ public class BalanceReportHandler implements IReportHandler {
 
 
     @Override
-    public byte[] handle(Map<String, Object> params) throws IOException {
+    public byte[] handle(Map<String, Object> params) {
+        List<ValidationError> errors = new ArrayList<>();
+        List<String> accountRaw = null;
+
+        try {
+            accountRaw = (List<String>) params.get("accounts");
+
+        } catch (IllegalArgumentException e){
+            errors.add(new ValidationError("params", MessageError.INCORRECT_PARAMS));
+        }
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Переданы некорректные параметры", errors);
+        }
+
+
+
         Workbook book = new HSSFWorkbook();
         DataReport reportHandler = new DataReport();
 //получение лист аккаунтов
-        List<String> accountRaw = (List<String>) params.get("accounts");
         List<UUID> accountUuids = new ArrayList<>();
         accountRaw.forEach((o) ->
                 accountUuids.add(UUID.fromString(o)));
@@ -72,11 +89,14 @@ public class BalanceReportHandler implements IReportHandler {
             balance.setCellValue(accountList.get(i).getBalance());
         }
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//TODO сделать ошибку
 
+        try {
             book.write(bos);
-
             bos.close();
+        } catch (IOException e) {
+            throw new ValidationException("Не удалось сохранить ексель файл");
+        }
+
 
         byte[] bytes = bos.toByteArray();
         //claudinary.upload(bytes);

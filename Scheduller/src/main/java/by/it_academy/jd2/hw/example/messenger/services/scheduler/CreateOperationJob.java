@@ -3,15 +3,13 @@ package by.it_academy.jd2.hw.example.messenger.services.scheduler;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.OperationRequest;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
-import by.it_academy.jd2.hw.example.messenger.services.OperationService;
-import by.it_academy.jd2.hw.example.messenger.services.ScheduledOperationService;
-import netscape.javascript.JSObject;
+import by.it_academy.jd2.hw.example.messenger.services.api.IScheduledOperationService;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -22,23 +20,25 @@ import java.util.UUID;
 @Transactional
 public class CreateOperationJob implements Job {
 
-    private final OperationService operationService;
+    private final IScheduledOperationService scheduledOperationService;
     private final RestTemplate restTemplate;
     private final ConversionService conversionService;
 
-    public CreateOperationJob(OperationService operationService, ConversionService conversionService) {
-        this.operationService = operationService;
+    public CreateOperationJob(IScheduledOperationService scheduledOperationService, ConversionService conversionService) {
+        this.scheduledOperationService = scheduledOperationService;
         this.restTemplate = new RestTemplate();
         this.conversionService = conversionService;
     }
+    @Value("${account_url}")
+    private String accountUrl;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         String idOperation = context.getMergedJobDataMap().getString("operation");
-        Operation operation = this.operationService.get(UUID.fromString(idOperation));
+        ScheduledOperation scheduledOperation = scheduledOperationService.get(UUID.fromString(idOperation));
+        Operation operation = scheduledOperation.getOperation();
         OperationRequest operationRequest = conversionService.convert(operation, OperationRequest.class);
-        //TODO перебить на нормальную ссылку
-        String url = "http://localhost:8080/api/account/" + operation.getAccount() + "/operation/";
+        String url = accountUrl + operation.getAccount() + "/operation/";
         HttpEntity<OperationRequest> request = new HttpEntity<>(operationRequest);
         this.restTemplate.postForObject(url, request, OperationRequest.class);
     }

@@ -3,15 +3,18 @@ package by.it_academy.jd2.hw.example.messenger.services.scheduler;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
-import by.it_academy.jd2.hw.example.messenger.services.api.ISchedulerService;
-import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
+import by.it_academy.jd2.hw.example.messenger.services.api.*;
 import org.quartz.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.module.FindException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -19,16 +22,19 @@ import java.util.UUID;
 @Transactional
 public class SchedulerService implements ISchedulerService {
     private final ConversionService conversionService;
+    private final IScheduledOperationService scheduledOperationService;
     private final Scheduler scheduler;
 
-    public SchedulerService(ConversionService conversionService, Scheduler scheduler) {
+    public SchedulerService(ConversionService conversionService, Scheduler scheduler,
+                            IScheduledOperationService scheduledOperationService) {
         this.conversionService = conversionService;
         this.scheduler = scheduler;
+        this.scheduledOperationService = scheduledOperationService;
     }
+
 
     @Override
     public void create(ScheduledOperation scheduledOperation) {
-        //TODO чек шедуль операции
         Schedule schedule = scheduledOperation.getSchedule();
         Operation operation = scheduledOperation.getOperation();
         UUID idScheduledOperation = operation.getUuid();
@@ -113,21 +119,17 @@ public class SchedulerService implements ISchedulerService {
     }
 
     @Override
-    public void update(UUID uuidOperation, LocalDateTime dt_update,
+    public void update(UUID uuidOperation,
                        ScheduledOperation scheduledOperation) {
-        //TODO перебить ошибку
-        //TODO сверить ласт апдейт
+
         //удаляем старую запись
         try {
             scheduler.deleteJob(new JobKey(uuidOperation.toString(), "operations"));
         } catch (SchedulerException e) {
             throw new RuntimeException("Ошибка удаления старого шедулера");
         }
-        //TODO перепроверить логику
         //обновить запись в бд ScheduledOperation
-        //нет обновлять надо отдельно в контроллере!!!
-
         //создать новый шедулер
         this.create(scheduledOperation);
-        }
+    }
 }

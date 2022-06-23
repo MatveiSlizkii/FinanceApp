@@ -8,6 +8,5 @@ import java.util.UUID;
 public interface ISchedulerService {
 
     void create (ScheduledOperation scheduledOperation);
-    void update (UUID uuidOperation, LocalDateTime dt_update,
-                 ScheduledOperation scheduledOperation);
+    void update (UUID uuidOperation, ScheduledOperation scheduledOperation);
 }

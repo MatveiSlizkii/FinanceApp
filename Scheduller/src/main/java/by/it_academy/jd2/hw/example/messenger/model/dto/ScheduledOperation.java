@@ -2,6 +2,7 @@ package by.it_academy.jd2.hw.example.messenger.model.dto;
 
 import by.it_academy.jd2.hw.example.messenger.model.serializer.CustomLocalDateTimeDeserializer;
 import by.it_academy.jd2.hw.example.messenger.model.serializer.CustomLocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -18,18 +19,21 @@ public class ScheduledOperation {
     private LocalDateTime dt_update;
     private Schedule schedule;
     private Operation operation;
+    @JsonIgnore
+    private String user;
 
     public ScheduledOperation() {
     }
 
     public ScheduledOperation(UUID uuid, LocalDateTime dt_create,
                               LocalDateTime dt_update, Schedule schedule,
-                              Operation operation) {
+                              Operation operation, String user) {
         this.uuid = uuid;
         this.dt_create = dt_create;
         this.dt_update = dt_update;
         this.schedule = schedule;
         this.operation = operation;
+        this.user = user;
     }
 
     public UUID getUuid() {
@@ -72,6 +76,14 @@ public class ScheduledOperation {
         this.operation = operation;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
         return "ScheduledOperation{" +
@@ -80,6 +92,7 @@ public class ScheduledOperation {
                 ", dt_update=" + dt_update +
                 ", schedule=" + schedule +
                 ", operation=" + operation +
+                ", user='" + user + '\'' +
                 '}';
     }
 
@@ -89,6 +102,7 @@ public class ScheduledOperation {
         private LocalDateTime dt_update;
         private Schedule schedule;
         private Operation operation;
+        private String user;
 
         private Builder() {
         }
@@ -117,12 +131,18 @@ public class ScheduledOperation {
             this.operation = operation;
             return this;
         }
+
+        public Builder setUser(String user) {
+            this.user = user;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public ScheduledOperation build() {
-            return new ScheduledOperation(uuid, dt_create, dt_update, schedule, operation);
+            return new ScheduledOperation(uuid, dt_create, dt_update, schedule, operation, user);
         }
     }
     }

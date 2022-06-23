@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import by.it_academy.jd2.hw.example.messenger.services.claudinary.api.ICloudStorage;
@@ -22,7 +23,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -52,7 +52,7 @@ public class ReportService implements IReportService {
 
     @Override
     @Transactional
-    public Report save(ReportType reportType, Map<String, Object> params) throws IOException {
+    public Report save(ReportType reportType, Map<String, Object> params) {
 
         //Генерация description
         String description;
@@ -70,12 +70,13 @@ public class ReportService implements IReportService {
             String from = localDateTimeFrom.toLocalDate().format(formatters);
             description = "Дата совершения операции: " + to + " - " + from;
         }
-
+        //TODO разбить на подзадачи
         IReportHandler handler = this.handlerFactory.handler(reportType);
         byte[] dataReport = handler.handle(params);
-
+        //TODO вторая стадия
         String urlExcel = cloud.upload(dataReport);
 
+        //TODO разобраться с типами статуса
         LocalDateTime localDateTime = LocalDateTime.now();
         Report report = Report.Builder.createBuilder()
                 .setUuid(UUID.randomUUID())
@@ -134,7 +135,7 @@ public class ReportService implements IReportService {
     }
 
     @Override
-    public Report upgrade(Report reportRaw) {
+    public Report update(Report reportRaw) {
         //TODO чек репорта
         //TODO есть ли такой ууид
         ReportEntity reportEntity = em.find(ReportEntity.class, reportRaw.getUuid());
@@ -150,11 +151,29 @@ public class ReportService implements IReportService {
             reportEntity.setDescription(reportRaw.getDescription());
         }
         if (reportRaw.getParams() != null) {
-            reportEntity.setParams(reportRaw.getParams().toString());
+            reportEntity.setParams(reportRaw.getParams());
         }
         if (reportRaw.getExcelReport() != null) {
             reportEntity.setExcelReport(reportRaw.getExcelReport());
         }
+        return conversionService.convert(reportEntity, Report.class);
+    }
+
+    @Override
+    public Report updateStatus(UUID uuidReport, StatusType statusType) {
+        List<ValidationError> errors = new ArrayList<>();
+        ReportEntity reportEntity = null;
+        try {
+            reportEntity = em.find(ReportEntity.class, uuidReport);
+        } catch (RuntimeException e){
+            errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
+        }
+        if (statusType == null){
+            errors.add(new ValidationError("statusType", MessageError.MISSING_FIELD));
+        }
+        em.refresh(reportEntity, LockModeType.OPTIMISTIC);
+        reportEntity.setStatus(statusType);
+
         return conversionService.convert(reportEntity, Report.class);
     }
 }

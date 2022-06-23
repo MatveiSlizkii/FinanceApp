@@ -10,10 +10,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        registry.addConverter(new OperationConverter());
-        registry.addConverter(new OperationEntityConverter());
-        registry.addConverter(new ScheduleConverter());
-        registry.addConverter(new ScheduleEntityConverter());
         registry.addConverter(new ScheduledOperationConverter());
         registry.addConverter(new ScheduledOperationEntityConverter());
         registry.addConverter(new LongToLocalDateTimeConverter());

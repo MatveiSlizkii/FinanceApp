@@ -85,7 +85,8 @@ public class CreateOperationJob implements Job {
 
         ResponseEntity<String> response1 = restTemplate.getForEntity(
                 "http://localhost:8084/api/mail/report/" + response.getUuid(), String.class);
-
+        //TODO перебить ссылки
+        //TODO перебить на хидеры
 
         //TODO вставить перед ресттемплейт то что мы ожидаем получить
     }

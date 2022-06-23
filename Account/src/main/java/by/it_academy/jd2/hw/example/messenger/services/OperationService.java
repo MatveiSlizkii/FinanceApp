@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.services.api.*;
 import by.it_academy.jd2.hw.example.messenger.dao.api.IOperationStorage;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
@@ -142,7 +143,13 @@ public class OperationService implements IOperationService {
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
-        LocalDateTime checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
+        LocalDateTime checkDateTime = null;
+        try {
+            checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
+        } catch (Exception e){
+            throw new ValidationException ("dt_update" + MessageError.INVALID_FORMAT);
+        }
+
         if (!operationStorage.getById(uuidOperation).getDtUpdate().equals(checkDateTime)) {
             throw new IllegalArgumentException("Данная версия для обновления устарела," +
                     "обновите, пожалуйста страницу");
@@ -196,18 +203,19 @@ public class OperationService implements IOperationService {
 
     @Override
     public List<Operation> getBetweenDates(LocalDateTime to, LocalDateTime from, UUID uuidAccount) {
-        //TODO пустой ли лист операций
         String login = this.userHolder.getLoginFromContext();
         List<ValidationError> errors = new ArrayList<>();
         if (!accountService.checkAccountByUser(uuidAccount, login)) {
             errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
         }
-
+        List<Operation> operations = new ArrayList<>();
+        List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
+        if (operationEntities.isEmpty()){
+            errors.add(new ValidationError("OperationList", "список операций не найден у данног аккаунта"));
+        }
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
-        List<Operation> operations = new ArrayList<>();
-        List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
         operationEntities.forEach((o) ->
                 operations.add(conversionService.convert(o, Operation.class)));
         return operations;
@@ -224,8 +232,10 @@ public class OperationService implements IOperationService {
 
         String currencyClassifierUrl = currencyUrl + operation.getCurrency() + "/";
         String categoryClassifierUrl = categoryUrl + operation.getCategory() + "/";
+        //TODO переделал хидер
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         HttpEntity<Object> entity = new HttpEntity<>(headers);
 
         if (operation.getCategory() == null) {

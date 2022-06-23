@@ -42,8 +42,6 @@ public class RestOperationCategoryController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     public OperationCategory create(@RequestBody OperationCategory operationCategory) {
-        //TODO все ли переданы аргументы важные
-        //TODO уникальные названия категорий
         return operationCategoryService.save(operationCategory);
     }
 }

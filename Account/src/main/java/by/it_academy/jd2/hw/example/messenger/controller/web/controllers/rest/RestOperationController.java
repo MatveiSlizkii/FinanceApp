@@ -34,7 +34,6 @@ public class RestOperationController {
     public Page<Operation> index(@RequestParam @Min(value = 0, message = MessageError.PAGE_NUMBER) int page,
                                  @RequestParam @Min(value = 1, message = MessageError.PAGE_SIZE) int size,
                                  @PathVariable(name = "uuid") UUID uuidAccount) {
-        //TODO есть ли такой уид в базе
 
         Pageable pageable = Pageable.ofSize(size).withPage(page - 1);
 
@@ -47,8 +46,6 @@ public class RestOperationController {
     @ResponseStatus(HttpStatus.CREATED)
     public Operation create(@RequestBody Operation operation,
                             @PathVariable(name = "uuid") UUID uuidAccount) {
-        //TODO на валидность операции
-        //TODO есть ли такой уид счета
         operation.setUuidAccount(uuidAccount);
         return operationService.save(operation);
     }
@@ -62,10 +59,15 @@ public class RestOperationController {
     public Operation update(@RequestBody Operation operation,
                             @PathVariable(name = "uuid") UUID uuidAccount,
                             @PathVariable(name = "uuid_operation") UUID uuid,
-                            @PathVariable(name = "dt_update") Long dt_update) {
-        //TODO сделать проверку принадлежит ли данная операция счету
-        //TODO парсится ли лонг
-        return operationService.update(uuid, operation, dt_update);
+                            @PathVariable(name = "dt_update") String dtUpdateString) {
+        long dtUpdateLong;
+        try {
+            dtUpdateLong = Long.parseLong(dtUpdateString);
+        } catch (NumberFormatException e) {
+            throw new ValidationException("Передан неверный формат параметра последнего обновления");
+        }
+
+        return operationService.update(uuid, operation, dtUpdateLong);
     }
 
 
@@ -78,7 +80,6 @@ public class RestOperationController {
     public Operation delete(@PathVariable(name = "uuid") UUID uuidAccount,
                             @PathVariable(name = "uuid_operation") UUID uuid,
                             @PathVariable(name = "dt_update") String dtUpdateString) {
-        //TODO сделать проверку принадлежит ли данная операция счету
         long dtUpdateLong;
         try {
             dtUpdateLong = Long.parseLong(dtUpdateString);

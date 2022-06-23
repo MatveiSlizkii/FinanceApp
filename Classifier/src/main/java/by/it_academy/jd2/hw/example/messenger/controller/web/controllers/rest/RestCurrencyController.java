@@ -40,7 +40,6 @@ public class RestCurrencyController {
     @ResponseBody
     public Currency create(@RequestBody Currency currency) {
         //TODO валидность курренси
-        //TODO уникальное название курренси
         return currencyService.save(currency);
     }
 }

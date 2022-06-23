@@ -4,6 +4,7 @@ import by.it_academy.jd2.hw.example.messenger.model.dto.Report;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
 import by.it_academy.jd2.hw.example.messenger.services.api.ISchedulerService;
+import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import org.quartz.*;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
@@ -88,11 +89,10 @@ public class SchedulerService implements ISchedulerService {
         }
 
         Trigger trigger = builder.build();
-        //TODO изменить ошибку
         try {
             this.scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException e) {
-            throw new RuntimeException("Ошибка создания запланированной операции", e);
+            throw new ValidationException("Ошибка создания запланированной операции", e);
         }
 
 

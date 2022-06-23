@@ -19,7 +19,8 @@ spring:
 server:
   port : 8082
 
-account_url : http://account-service:8080/account
+account_url : http://localhost:8080/api/account/
 account_backend_url : http://account-service:8080/backend/account
-classifier_currency_url : http://classifier-service:8080/backend/classifier/currency
-classifier_category_url : http://classifier-service:8080/backend/classifier/operation/category
+
+classifier_currency_url : http://localhost:8081/api/classifier/close/currency/
+classifier_category_url : http://localhost:8081/api/classifier/close/operation/category/

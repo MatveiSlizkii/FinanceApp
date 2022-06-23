@@ -1,7 +1,7 @@
 package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
-import by.it_academy.jd2.hw.example.messenger.services.ScheduledReportService;
+import by.it_academy.jd2.hw.example.messenger.services.api.IScheduledReportService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/mail/scheduler")
 public class RestScheduledOperationController {
     private final ConversionService conversionService;
-    private final ScheduledReportService scheduledReportService;
+    private final IScheduledReportService scheduledReportService;
 
     public RestScheduledOperationController(ConversionService conversionService,
-                                            ScheduledReportService scheduledReportService) {
+                                            IScheduledReportService scheduledReportService) {
         this.conversionService = conversionService;
         this.scheduledReportService = scheduledReportService;
     }

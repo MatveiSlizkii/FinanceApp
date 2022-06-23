@@ -2,7 +2,7 @@ package by.it_academy.jd2.hw.example.messenger.model.converters;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
-import by.it_academy.jd2.hw.example.messenger.model.entity.ScheduledOperationEntity;
+import by.it_academy.jd2.hw.example.messenger.dao.entity.ScheduledOperationEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IScheduledOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -25,6 +25,7 @@ public class ScheduledOperationConverter implements Converter<ScheduledOperation
                 .setDt_update(source.getDt_update())
                 .setOperation(conversionService.convert(scheduledOperationService.get(source.getOperation()), Operation.class))
                 .setSchedule(conversionService.convert(scheduledOperationService.get(source.getSchedule()), Schedule.class))
+                .setUser(source.getUser())
                 .build();
     }
 

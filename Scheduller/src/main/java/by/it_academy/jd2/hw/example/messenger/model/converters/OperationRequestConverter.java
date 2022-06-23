@@ -2,7 +2,6 @@ package by.it_academy.jd2.hw.example.messenger.model.converters;
 
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.OperationRequest;
-import by.it_academy.jd2.hw.example.messenger.model.entity.OperationEntity;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
