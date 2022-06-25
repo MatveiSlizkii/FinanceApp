@@ -78,7 +78,7 @@ public class AccountService implements IAccountService {
 
     //TODO перепроверить аннотацию транзакция
     @Override
-    //@Transactional
+    @Transactional
     public Account save(Account account) {
         String login = userHolder.getLoginFromContext();
 
@@ -105,15 +105,16 @@ public class AccountService implements IAccountService {
         account.setDt_create(timeNow);
         account.setDt_update(timeNow);
         account.setBalance((double) 0);
+        account.setUser(login);
         BalanceEntity balanceEntity = BalanceEntity.Builder.createBuilder()
                 .setDtUpdate(timeNow)
                 .setUuid(uuid)
                 .setValue(0)
                 .build();
         balanceStorage.save(balanceEntity);
-        accountStorage.save(conversionService.convert(account, AccountEntity.class));
+        AccountEntity accountEntity = accountStorage.save(conversionService.convert(account, AccountEntity.class));
 
-        return account;
+        return conversionService.convert(accountEntity, Account.class);
     }
 
     @Override
@@ -160,14 +161,17 @@ public class AccountService implements IAccountService {
         }
 
         AccountEntity accountEntity = em.find(AccountEntity.class, uuid);
+        em.refresh(accountEntity, LockModeType.OPTIMISTIC);
         accountEntity.setTitle(accountRaw.getTitle());
         accountEntity.setDescription(accountRaw.getDescription());
         accountEntity.setCurrency(accountRaw.getCurrency());
         accountEntity.setUser(accountRaw.getUser());
-        em.refresh(accountEntity, LockModeType.OPTIMISTIC);
-        //TODO ошибка если не удалось обновить систему
+        accountEntity.setUser(userHolder.getLoginFromContext());
+        this.updateBalance(uuid, accountRaw.getBalance());
 
-        return conversionService.convert(accountStorage.getById(uuid), Account.class);
+
+
+        return conversionService.convert(accountEntity, Account.class);
     }
 
     @Override
@@ -177,7 +181,6 @@ public class AccountService implements IAccountService {
         Double valueFinal = balanceEntity.getValue() + value;
         balanceEntity.setValue(valueFinal);
 
-        //TODO ошибка если не обновилось
 
         return balanceEntity;
     }
@@ -209,7 +212,6 @@ public class AccountService implements IAccountService {
         if (account.getCurrency() == null) {
             errors.add(new ValidationError("currency", MessageError.MISSING_FIELD));
         } else {
-            //TODO написал правильно хидер
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());

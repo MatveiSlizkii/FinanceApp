@@ -22,14 +22,11 @@ import java.util.UUID;
 @Transactional
 public class SchedulerService implements ISchedulerService {
     private final ConversionService conversionService;
-    private final IScheduledOperationService scheduledOperationService;
     private final Scheduler scheduler;
 
-    public SchedulerService(ConversionService conversionService, Scheduler scheduler,
-                            IScheduledOperationService scheduledOperationService) {
+    public SchedulerService(ConversionService conversionService, Scheduler scheduler) {
         this.conversionService = conversionService;
         this.scheduler = scheduler;
-        this.scheduledOperationService = scheduledOperationService;
     }
 
 

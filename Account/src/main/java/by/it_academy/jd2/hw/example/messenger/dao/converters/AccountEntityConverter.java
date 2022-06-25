@@ -28,7 +28,7 @@ public class AccountEntityConverter implements Converter<Account, AccountEntity>
                 .setType(source.getType().name())
                 .setCurrency(source.getCurrency())
                 .setBalance(balance)
-              //  .setBalance(null)
+                .setUser(source.getUser())
                 .build();
     }
 

@@ -28,13 +28,12 @@ public class AccountEntity {
     private String type;
     @Column(name = "currency")
     private UUID currency;
-
+    @Column (name = "user_login")
+    private String user;
     @OneToOne
     @JoinColumn(name = "balance", nullable = false)
     private BalanceEntity balance;
-    @JsonIgnore
-    @Column (name = "user")
-    private String user;
+
 
     public AccountEntity() {
     }

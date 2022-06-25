@@ -21,7 +21,6 @@ import java.util.UUID;
 public class RestScheduledOperationController {
     private final ConversionService conversionService;
     private final IScheduledOperationService scheduledOperationService;
-
     private final ISchedulerService schedulerService;
 
     public RestScheduledOperationController(ConversionService conversionService,
@@ -68,14 +67,4 @@ public class RestScheduledOperationController {
 
         return scheduledOperation1;
     }
-//    @PostMapping(value = {"{uuid}/dt_update/{dt_update}", "/{uuid}/dt_update/{dt_update}/"},
-//            consumes = MediaType.APPLICATION_JSON_VALUE)
-//    @ResponseBody
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public ScheduledOperation test(@RequestBody ScheduledOperation scheduledOperation) {
-//        schedulerService.update(UUID.fromString("15486e31-5923-48f8-b33b-d534f66fb18e"),
-//                null, scheduledOperation);
-//        return null;
-//    }
-
 }

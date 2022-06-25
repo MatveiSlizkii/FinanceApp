@@ -35,12 +35,41 @@ public class RestCloseController {
         this.balanceStorage = balanceStorage;
     }
 
+
+    @RequestMapping(
+            value = {"tofrom", "tofrom/"},
+            method = RequestMethod.GET
+    )
+    @ResponseBody
+    public List<Operation> index(@RequestParam(name = "to") String toRaw,
+                                 @RequestParam(name = "from") String fromRaw,
+                                 @RequestParam(name = "uuid") UUID uuidAccount) {
+        //TODO ошибки
+        LocalDateTime to = conversionService.convert(Long.parseLong(toRaw), LocalDateTime.class);
+        LocalDateTime from = conversionService.convert(Long.parseLong(fromRaw), LocalDateTime.class);
+        return operationService.getBetweenDates(to, from, uuidAccount);
+    }
+
+
+    @RequestMapping(
+            value = {"findallaccount/{login}", "findallaccount/{login}/"},
+            method = RequestMethod.GET
+    )
+    @ResponseBody
+    public List<UUID> index(@PathVariable(name = "login") String login) {
+        //TODO ошибки
+        List<UUID> uuidsAccounts = accountService.uuidsAccountsByUser(login);
+        return uuidsAccounts;
+    }
+
+
     @RequestMapping(
             value = {"/insertbd", "/insertbd/"},
             method = RequestMethod.GET,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE}
     )
+
     @ResponseBody
     public Account create() {
         Random rand = new Random();
@@ -106,30 +135,5 @@ public class RestCloseController {
             operationService.save(operation2);
         }
         return null;
-    }
-
-    @RequestMapping(
-            value = {"tofrom", "tofrom/"},
-            method = RequestMethod.GET
-    )
-    @ResponseBody
-    public List<Operation> index(@RequestParam(name = "to") String toRaw,
-                                 @RequestParam(name = "from") String fromRaw,
-                                 @RequestParam(name = "uuid") UUID uuidAccount) {
-        //TODO ошибки
-        LocalDateTime to = conversionService.convert(Long.parseLong(toRaw), LocalDateTime.class);
-        LocalDateTime from = conversionService.convert(Long.parseLong(fromRaw), LocalDateTime.class);
-        return operationService.getBetweenDates(to, from, uuidAccount);
-    }
-
-    @RequestMapping(
-            value = {"/privet", "/privet/"},
-            method = RequestMethod.GET,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
-    @ResponseBody
-    public BalanceEntity index(@RequestParam(name = "uuid") UUID uuid) {
-        return balanceStorage.getById(uuid);
     }
 }

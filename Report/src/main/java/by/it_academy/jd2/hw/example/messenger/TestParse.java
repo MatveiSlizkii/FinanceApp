@@ -10,20 +10,14 @@ public class TestParse {
         List<String> stringList = new ArrayList<>();
         stringList.add("d938418c-58ff-4376-897c-1b904d1dc2ed");
         stringList.add("7670f360-ae8e-467c-a1c9-12f3486b0f9c");
-        Object obj = stringList.toString();
-        String strObj = obj.toString();
-        System.out.println(strObj);
-        List<String> list = Arrays.asList(strObj.substring(1, strObj.length()-1).split(", "));
-        List<UUID> uuids = new ArrayList<>();
-        list.forEach((o)-> uuids.add(UUID.fromString(o)));
-        System.out.println();
-        System.out.println(uuids);
+        stringList.add("sdsds");
+        List<String> stringList2 = new ArrayList<>();
+        stringList2.add("d938418c-58ff-4376-897c-1b904d1dc2ed");
+        stringList2.add("7670f360-ae8e-467c-a1c9-12f3486b0f9c");
 
-        System.out.println(LocalDate.now().format(DateTimeFormatter.ofPattern("d.MM.uuuu")));
-
-        LocalDateTime ldt = LocalDateTime.now();
-        String date = ldt.toLocalDate().format(DateTimeFormatter.ofPattern("d.MM.uuuu"));
-        System.out.println(date);
+        stringList2.removeAll(stringList);
+        System.out.println(stringList2.size());
+        System.out.println(stringList2);
 
     }
 }

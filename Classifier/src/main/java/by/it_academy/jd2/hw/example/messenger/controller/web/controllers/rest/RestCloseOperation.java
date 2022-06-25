@@ -6,6 +6,7 @@ import by.it_academy.jd2.hw.example.messenger.services.api.ICurrencyService;
 import by.it_academy.jd2.hw.example.messenger.services.api.IOperationCategoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.expression.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,6 +53,16 @@ public class RestCloseOperation {
     public Currency index2(@PathVariable (name = "uuid") UUID uuid) {
         return currencyService.get(uuid);
     }
+
+    @RequestMapping(
+            value = {"/operation/{uuid}", "/operation/{uuid}/"},
+            method = RequestMethod.GET
+    )
+    @ResponseBody
+    public OperationCategory index3(@PathVariable (name = "uuid") UUID uuid) {
+        return operationCategoryService.get(uuid);
+    }
+
 
 
 }

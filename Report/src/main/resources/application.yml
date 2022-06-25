@@ -15,3 +15,4 @@ classifier_currency_url: http://localhost:8081/api/classifier/close/currency/
 classifier_category_url: http://localhost:8081/api/classifier/close/operation/
 account_url: http://localhost:8080/api/account/
 account_to_from_url: http://localhost:8080/api/account/close/tofrom
+accounts_by_login: http://localhost:8080/api/account/close/findallaccount/

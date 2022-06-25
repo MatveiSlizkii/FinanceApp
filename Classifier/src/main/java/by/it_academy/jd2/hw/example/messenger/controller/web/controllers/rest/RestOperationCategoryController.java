@@ -24,12 +24,8 @@ public class RestOperationCategoryController {
         this.operationCategoryService = operationCategoryService;
     }
 
-    @RequestMapping(
-            value = {"", "/"},
-            method = RequestMethod.GET,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+
+    @GetMapping(value = {"", "/"}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public Page<OperationCategory> index(@RequestParam(name = "page") @Min(value = 0, message = MessageError.PAGE_NUMBER) int page,
                                          @RequestParam(name = "size") @Min(value = 1, message = MessageError.PAGE_SIZE)   int size){

@@ -4,6 +4,7 @@ package by.it_academy.jd2.hw.example.messenger.model.dto;
 import by.it_academy.jd2.hw.example.messenger.model.api.TypeAccount;
 import by.it_academy.jd2.hw.example.messenger.model.serializer.CustomLocalDateTimeDeserializer;
 import by.it_academy.jd2.hw.example.messenger.model.serializer.CustomLocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -24,6 +25,7 @@ public class Account {
     private TypeAccount type;
     private UUID currency;
     private Double balance;
+    @JsonIgnore
     private String user;
 
     public Account() {

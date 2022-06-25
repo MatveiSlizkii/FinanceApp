@@ -52,8 +52,7 @@ public class RestOperationController {
 
 
     @PutMapping(value = {"{uuid_operation}/dt_update/{dt_update}",
-                        "{uuid_operation}/dt_update/{dt_update}/"},
-                        consumes = MediaType.APPLICATION_JSON_VALUE)
+                        "{uuid_operation}/dt_update/{dt_update}/"})
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public Operation update(@RequestBody Operation operation,
@@ -66,7 +65,7 @@ public class RestOperationController {
         } catch (NumberFormatException e) {
             throw new ValidationException("Передан неверный формат параметра последнего обновления");
         }
-
+        operation.setUuidAccount(uuidAccount);
         return operationService.update(uuid, operation, dtUpdateLong);
     }
 

@@ -146,8 +146,8 @@ public class OperationService implements IOperationService {
         LocalDateTime checkDateTime = null;
         try {
             checkDateTime = conversionService.convert(dt_update, LocalDateTime.class);
-        } catch (Exception e){
-            throw new ValidationException ("dt_update" + MessageError.INVALID_FORMAT);
+        } catch (Exception e) {
+            throw new ValidationException("dt_update" + MessageError.INVALID_FORMAT);
         }
 
         if (!operationStorage.getById(uuidOperation).getDtUpdate().equals(checkDateTime)) {
@@ -155,6 +155,7 @@ public class OperationService implements IOperationService {
                     "обновите, пожалуйста страницу");
         }
         OperationEntity operationEntity = em.find(OperationEntity.class, uuidOperation);
+        System.out.println(operationEntity);
         em.refresh(operationEntity, LockModeType.OPTIMISTIC);
         if (!accountService.checkAccountByUser(operationEntity.getUuidAccount(), login)) {
             errors.add(new ValidationError("user", MessageError.ID_NOT_EXIST));
@@ -163,18 +164,17 @@ public class OperationService implements IOperationService {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
         Double valueFinal = operationRaw.getValue() - operationEntity.getValue();
-        OperationEntity.Builder.createBuilder()
-                .setDate(operationRaw.getDtCreate())
-                .setDescription(operationRaw.getDescription())
-                .setCategory(operationRaw.getCategory())
-                .setValue(operationRaw.getValue())
-                .setCurrency(operationRaw.getCurrency())
-                .build();
+
+        operationEntity.setDate(operationRaw.getDate());
+        operationEntity.setDescription(operationRaw.getDescription());
+        operationEntity.setCategory(operationRaw.getCategory());
+        operationEntity.setValue(operationRaw.getValue());
+        operationEntity.setCurrency(operationRaw.getCurrency());
+
 
         accountService.updateBalance(operationEntity.getUuidAccount(), valueFinal);
 
-        em.close(); // под вопросом надо ли она, скорее всего нет
-
+        System.out.println(operationEntity);
         return conversionService.convert(operationEntity, Operation.class);
     }
 
@@ -210,7 +210,7 @@ public class OperationService implements IOperationService {
         }
         List<Operation> operations = new ArrayList<>();
         List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
-        if (operationEntities.isEmpty()){
+        if (operationEntities.isEmpty()) {
             errors.add(new ValidationError("OperationList", "список операций не найден у данног аккаунта"));
         }
         if (!errors.isEmpty()) {
@@ -232,7 +232,6 @@ public class OperationService implements IOperationService {
 
         String currencyClassifierUrl = currencyUrl + operation.getCurrency() + "/";
         String categoryClassifierUrl = categoryUrl + operation.getCategory() + "/";
-        //TODO переделал хидер
         HttpHeaders headers = new HttpHeaders();
         String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
@@ -266,7 +265,6 @@ public class OperationService implements IOperationService {
             errors.add(new ValidationError("UuidAccount", "Не передан uuid счёта"));
         } else {
 
-            //TODO проверить как я сделал, верный ли кетч
             try {
                 accountService.get(operation.getUuidAccount());
             } catch (IllegalArgumentException e) {

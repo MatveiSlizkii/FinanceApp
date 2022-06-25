@@ -31,7 +31,6 @@ public class BalanceReportHandler implements IReportHandler {
 
         try {
             accountRaw = (List<String>) params.get("accounts");
-
         } catch (IllegalArgumentException e){
             errors.add(new ValidationError("params", MessageError.INCORRECT_PARAMS));
         }
@@ -99,7 +98,6 @@ public class BalanceReportHandler implements IReportHandler {
 
 
         byte[] bytes = bos.toByteArray();
-        //claudinary.upload(bytes);
         return bytes;
     }
 }

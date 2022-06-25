@@ -57,7 +57,6 @@ public class ScheduledOperationService implements IScheduledOperationService {
                                      UserHolder userHolder) {
         this.scheduledOperationStorage = scheduledOperationStorage;
         this.conversionService = conversionService;
-
         this.schedulerService = schedulerService;
         this.restTemplate = new RestTemplate();
         this.userHolder = userHolder;

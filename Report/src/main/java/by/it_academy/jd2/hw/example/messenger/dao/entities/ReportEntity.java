@@ -30,7 +30,7 @@ public class ReportEntity {
     @Column(name = "url_report")
     private String excelReport;
     @JsonIgnore
-    @Column (name = "user")
+    @Column (name = "user_login")
     private String user;
 
     public ReportEntity() {

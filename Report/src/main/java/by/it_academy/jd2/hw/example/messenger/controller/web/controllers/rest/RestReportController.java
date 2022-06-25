@@ -59,9 +59,7 @@ public class RestReportController {
         Report report = reportService.get(uuid);
 
         byte[] bytes = cloudStorage.download(report.getExcelReport());
-//        return  ResponseEntity.ok()
-//                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-//                .body(new ByteArrayResource(bytes));
+
         return new ResponseEntity<>(new ByteArrayResource(bytes), header, HttpStatus.OK);
     }
     
@@ -78,10 +76,8 @@ public class RestReportController {
         //TODO проверить через коллекцию
         //TODO чеки на то что лежит в параметрах с учетом юзера
         Report report = reportService.save(type, params);
-
-        //TODO проверка на сущетсвует ли такой тип
-
-
+        byte[] bytes = reportService.CreateExcel(type, params, report.getUuid());
+        reportService.uploadInCloud(bytes, report.getUuid());
         return report;
     }
 
@@ -94,9 +90,6 @@ public class RestReportController {
     @ResponseBody
     public String checkStatus (@PathVariable (name = "uuid")UUID uuid) {
         Report report = reportService.get(uuid);
-        //TODO проверить пашет ли
-        //TODO на ошибки нашел/не нашел
-
         return report.getStatus().name();
     }
 

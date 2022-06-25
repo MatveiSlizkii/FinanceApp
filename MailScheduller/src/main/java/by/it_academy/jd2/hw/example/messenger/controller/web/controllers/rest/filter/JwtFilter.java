@@ -1,6 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest.filter;
 
-import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest.utils.JwtTokenUtil;
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.services.api.CustomUserDetails;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

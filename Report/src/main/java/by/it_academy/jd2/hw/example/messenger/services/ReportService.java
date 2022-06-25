@@ -12,10 +12,12 @@ import by.it_academy.jd2.hw.example.messenger.model.api.StatusType;
 import by.it_academy.jd2.hw.example.messenger.services.api.IReportService;
 import by.it_academy.jd2.hw.example.messenger.services.handlers.ReportHandlerFactory;
 import by.it_academy.jd2.hw.example.messenger.services.handlers.api.IReportHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -49,11 +51,25 @@ public class ReportService implements IReportService {
         this.cloud = cloud;
         this.userHolder = userHolder;
     }
+    @Value("${accounts_by_login}")
+    private String accounts_by_login;
 
     @Override
     @Transactional
     public Report save(ReportType reportType, Map<String, Object> params) {
+        //проверка юзеров
+        List<String> accountList = (List<String>) params.get("accounts");
+        ResponseEntity<Collection> response =
+                restTemplate.getForEntity(
+                        accounts_by_login + "?login=" + userHolder.getLoginFromContext(),
+                        Collection.class);
+        Collection raw = response.getBody();
+        List<String> accountsRaw = (List<String>) raw;
 
+        accountList.removeAll(accountsRaw);
+        if (accountList.size() != 0){
+            throw new ValidationException("Вы передали неверные счета к которым не имеете доступа");
+        }
         //Генерация description
         String description;
         DateTimeFormatter formatters = DateTimeFormatter.ofPattern("d.MM.uuuu");
@@ -70,29 +86,37 @@ public class ReportService implements IReportService {
             String from = localDateTimeFrom.toLocalDate().format(formatters);
             description = "Дата совершения операции: " + to + " - " + from;
         }
-        //TODO разбить на подзадачи
-        IReportHandler handler = this.handlerFactory.handler(reportType);
-        byte[] dataReport = handler.handle(params);
-        //TODO вторая стадия
-        String urlExcel = cloud.upload(dataReport);
-
-        //TODO разобраться с типами статуса
         LocalDateTime localDateTime = LocalDateTime.now();
         Report report = Report.Builder.createBuilder()
                 .setUuid(UUID.randomUUID())
                 .setDtCreate(localDateTime)
                 .setDtUpdate(localDateTime)
-                .setStatus(StatusType.PROGRESS)
+                .setStatus(StatusType.LOADED)
                 .setType(reportType)
                 .setDescription(description)
                 .setParams(params.toString())
-                .setExcelReport(urlExcel)
+                .setExcelReport("urlExcel")
                 .setUser(userHolder.getLoginFromContext())
                 .build();
-
         ReportEntity reportEntity = conversionService.convert(report, ReportEntity.class);
         reportStorage.save(reportEntity);
         return report;
+    }
+
+    @Override
+    public byte[] CreateExcel(ReportType reportType, Map<String, Object> params,UUID uuidReport) {
+        IReportHandler handler = this.handlerFactory.handler(reportType);
+        byte[] dataReport = handler.handle(params);
+        this.updateStatus(uuidReport, StatusType.PROGRESS);
+        return dataReport;
+    }
+
+    @Override
+    public String uploadInCloud(byte[] bytes,UUID uuidReport) {
+        String urlExcel = cloud.upload(bytes);
+        this.updateStatus(uuidReport, StatusType.DONE);
+        this.updateLink(uuidReport, urlExcel);
+        return urlExcel;
     }
 
     @Override
@@ -102,7 +126,7 @@ public class ReportService implements IReportService {
         ReportEntity reportEntity = null;
         try {
             reportEntity = reportStorage.findByUuidAndUser(uuid, login);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             errors.add(new ValidationError("report",
                     "данного отчета у пользователя не найденго"));
         }
@@ -121,7 +145,7 @@ public class ReportService implements IReportService {
 
         reportStorage.findAllByUser(userHolder.getLoginFromContext()).forEach((o) ->
                 reports.add(conversionService.convert(o, Report.class)));
-        if (reports.isEmpty()){
+        if (reports.isEmpty()) {
             errors.add(new ValidationError("report", "У вас пока нет ни одного отчета"));
         }
         if (!errors.isEmpty()) {
@@ -137,44 +161,57 @@ public class ReportService implements IReportService {
     @Override
     public Report update(Report reportRaw) {
         //TODO чек репорта
-        //TODO есть ли такой ууид
-        ReportEntity reportEntity = em.find(ReportEntity.class, reportRaw.getUuid());
+        ReportEntity reportEntity;
+        try {
+            reportEntity = em.find(ReportEntity.class, reportRaw.getUuid());
+        } catch (IllegalArgumentException e){
+            throw new ValidationException("Нет такого отчета в бд");
+        }
         em.refresh(reportEntity, LockModeType.OPTIMISTIC);
 
-        if (reportRaw.getStatus() != null) {
-            reportEntity.setStatus(reportRaw.getStatus());
-        }
-        if (reportRaw.getType() != null) {
-            reportEntity.setType(reportRaw.getType());
-        }
-        if (reportRaw.getDescription() != null) {
-            reportEntity.setDescription(reportRaw.getDescription());
-        }
-        if (reportRaw.getParams() != null) {
-            reportEntity.setParams(reportRaw.getParams());
-        }
-        if (reportRaw.getExcelReport() != null) {
-            reportEntity.setExcelReport(reportRaw.getExcelReport());
-        }
+        reportEntity.setStatus(reportRaw.getStatus());
+        reportEntity.setType(reportRaw.getType());
+        reportEntity.setDescription(reportRaw.getDescription());
+        reportEntity.setParams(reportRaw.getParams());
+        reportEntity.setExcelReport(reportRaw.getExcelReport());
+
         return conversionService.convert(reportEntity, Report.class);
     }
 
-    @Override
-    public Report updateStatus(UUID uuidReport, StatusType statusType) {
+
+    private Report updateStatus(UUID uuidReport, StatusType statusType) {
         List<ValidationError> errors = new ArrayList<>();
         ReportEntity reportEntity = null;
         try {
             reportEntity = em.find(ReportEntity.class, uuidReport);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
         }
-        if (statusType == null){
+        if (statusType == null) {
             errors.add(new ValidationError("statusType", MessageError.MISSING_FIELD));
         }
         em.refresh(reportEntity, LockModeType.OPTIMISTIC);
         reportEntity.setStatus(statusType);
 
         return conversionService.convert(reportEntity, Report.class);
+    }
+
+
+    private Report updateLink(UUID uuidReport, String link) {
+        List<ValidationError> errors = new ArrayList<>();
+        ReportEntity reportEntity = null;
+        try {
+            reportEntity = em.find(ReportEntity.class, uuidReport);
+        } catch (RuntimeException e) {
+            errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
+        }
+        if (link.isEmpty()) {
+            errors.add(new ValidationError("link", MessageError.MISSING_FIELD));
+        }
+        em.refresh(reportEntity, LockModeType.OPTIMISTIC);
+        reportEntity.setExcelReport(link);
+        return conversionService.convert(reportEntity, Report.class);
+
     }
 }
 
