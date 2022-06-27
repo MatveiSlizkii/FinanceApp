@@ -73,7 +73,6 @@ public class ScheduledOperationService implements IScheduledOperationService {
             errors.add(new ValidationError("scheduledOperation", MessageError.ID_NOT_EXIST));
         }
         ScheduledOperation scheduledOperation = conversionService.convert(scheduledOperationEntity, ScheduledOperation.class);
-        this.checkOperation(scheduledOperation.getOperation(), errors);
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
@@ -100,7 +99,6 @@ public class ScheduledOperationService implements IScheduledOperationService {
         scheduledOperation.setUuid(uuid);
         scheduledOperation.setDt_create(localDateTime);
         scheduledOperation.setDt_update(localDateTime);
-        scheduledOperation.getOperation().setDt_create(operation.getDt_create());
         scheduledOperation.setUser(userHolder.getLoginFromContext());
         scheduledOperationStorage.save(conversionService.convert(scheduledOperation, ScheduledOperationEntity.class));
         this.schedulerService.create(scheduledOperation);
@@ -133,18 +131,15 @@ public class ScheduledOperationService implements IScheduledOperationService {
         this.checkSchedule(scheduledOperationRaw.getSchedule(), errors);
 
         ScheduledOperationEntity scheduledOperationEntity = null;
-        try {
+
             scheduledOperationEntity = em.find(ScheduledOperationEntity.class, uuid);
-        } catch (IllegalArgumentException e) {
-            errors.add(new ValidationError("Uuid", MessageError.ID_NOT_EXIST));
-        }
+
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
-        em.refresh(scheduledOperationEntity, LockModeType.OPTIMISTIC);
+        em.lock(scheduledOperationEntity, LockModeType.OPTIMISTIC);
+        System.out.println();
 
-        scheduledOperationEntity.setSchedule(scheduledOperationRaw.getSchedule().getUuid());
-        scheduledOperationEntity.setOperation(scheduledOperationRaw.getOperation().getUuid());
 
         return conversionService.convert(scheduledOperationEntity, ScheduledOperation.class);
     }
@@ -170,6 +165,15 @@ public class ScheduledOperationService implements IScheduledOperationService {
         }
     }
 
+    @Override
+    public ScheduledOperation delete(UUID uuid) {
+       // ScheduledOperationEntity scheduledOperationEntity = em.find(ScheduledOperationEntity.class, uuid);
+        //em.lock(scheduledOperationEntity, LockModeType.OPTIMISTIC);
+        ScheduledOperationEntity scheduledOperationEntity = scheduledOperationStorage.getById(uuid);
+        scheduledOperationStorage.delete(scheduledOperationEntity);
+        return conversionService.convert(scheduledOperationEntity, ScheduledOperation.class);
+    }
+
     private void checkOperation(Operation operation, List<ValidationError> errors) {
         if (operation == null) {
             errors.add(new ValidationError("operation", MessageError.MISSING_OBJECT));
@@ -180,8 +184,8 @@ public class ScheduledOperationService implements IScheduledOperationService {
         String idCategory = "category (id категории)";
         String idCurrency = "currency (id валюты)";
 
-        String currencyClassifierUrl = this.currencyUrl + "/" + operation.getCurrency();
-        String categoryClassifierUrl = this.categoryUrl + "/" + operation.getCategory();
+        String currencyClassifierUrl = this.currencyUrl + "" + operation.getCurrency();
+        String categoryClassifierUrl = this.categoryUrl + "" + operation.getCategory();
         String accountServiceUrl = this.accountUrl + "/" + operation.getAccount();
 
         HttpHeaders headers = new HttpHeaders();

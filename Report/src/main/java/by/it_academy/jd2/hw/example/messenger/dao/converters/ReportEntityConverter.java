@@ -15,7 +15,7 @@ public class ReportEntityConverter implements Converter<Report, ReportEntity> {
                 .setUuid(source.getUuid())
                 .setDtCreate(source.getDtCreate())
                 .setDtUpdate(source.getDtUpdate())
-                .setStatus(source.getStatus())
+                .setStatus(source.getStatus().name())
                 .setType(source.getType())
                 .setDescription(source.getDescription())
                 .setParams(source.getParams())

@@ -14,6 +14,10 @@ public class CustomUserDetails implements UserDetails {
         this.login = JwtTokenUtil.getUsername(token);
     }
 
+    public CustomUserDetails(String login, String pass) {
+        this.login = login;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

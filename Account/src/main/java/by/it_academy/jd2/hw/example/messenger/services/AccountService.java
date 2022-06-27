@@ -167,7 +167,7 @@ public class AccountService implements IAccountService {
         accountEntity.setCurrency(accountRaw.getCurrency());
         accountEntity.setUser(accountRaw.getUser());
         accountEntity.setUser(userHolder.getLoginFromContext());
-        this.updateBalance(uuid, accountRaw.getBalance());
+        this.updateBalanceMain(uuid, accountRaw.getBalance());
 
 
 
@@ -180,6 +180,14 @@ public class AccountService implements IAccountService {
         em.refresh(balanceEntity, LockModeType.OPTIMISTIC);
         Double valueFinal = balanceEntity.getValue() + value;
         balanceEntity.setValue(valueFinal);
+
+
+        return balanceEntity;
+    }
+    public BalanceEntity updateBalanceMain(UUID uuid, Double value) {
+        BalanceEntity balanceEntity = em.find(BalanceEntity.class, uuid);
+        em.refresh(balanceEntity, LockModeType.OPTIMISTIC);
+        balanceEntity.setValue(value);
 
 
         return balanceEntity;

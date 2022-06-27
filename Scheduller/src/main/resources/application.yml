@@ -23,4 +23,4 @@ account_url : http://localhost:8080/api/account/
 account_backend_url : http://account-service:8080/backend/account
 
 classifier_currency_url : http://localhost:8081/api/classifier/close/currency/
-classifier_category_url : http://localhost:8081/api/classifier/close/operation/category/
+classifier_category_url : http://localhost:8081/api/classifier/close/operation/

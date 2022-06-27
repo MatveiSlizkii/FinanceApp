@@ -30,7 +30,6 @@ public class SchedulerService implements ISchedulerService {
     public void create(ScheduledReport ScheduledReport) {
         //TODO порверить на валидность шедулед репорт
         Schedule schedule = ScheduledReport.getSchedule();
-        Report report = ScheduledReport.getReport();
         UUID idScheduledReport = ScheduledReport.getUuid();
         JobDetail job = JobBuilder.newJob(CreateOperationJob.class)
                 .withIdentity(idScheduledReport.toString(), "report")
@@ -94,7 +93,24 @@ public class SchedulerService implements ISchedulerService {
         } catch (SchedulerException e) {
             throw new ValidationException("Ошибка создания запланированной операции", e);
         }
+    }
 
+    @Override
+    @Transactional
+    public void stop(UUID uuid) {
+        try {
+            scheduler.interrupt(new JobKey(uuid.toString(), "report"));
+
+        } catch (UnableToInterruptJobException e) {
+            System.out.println("Не удалось остановить джобу");
+        }
+
+        //удаляем старую джобу
+        try {
+            scheduler.deleteJob(new JobKey(uuid.toString(), "operations"));
+        } catch (SchedulerException e) {
+            throw new RuntimeException("Ошибка удаления старого шедулера");
+        }
 
     }
 }

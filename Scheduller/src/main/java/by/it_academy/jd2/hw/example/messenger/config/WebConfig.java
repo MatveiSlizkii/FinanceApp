@@ -11,10 +11,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new ScheduledOperationConverter());
-        registry.addConverter(new ScheduledOperationEntityConverter());
         registry.addConverter(new LongToLocalDateTimeConverter());
         registry.addConverter(new LocalDateTimeToDateConverter());
-        registry.addConverter(new OperationRequestConverter());
+        registry.addConverter(new ScheduledOperationEntityConverter());
 
     }
 }

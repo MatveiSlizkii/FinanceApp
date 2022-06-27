@@ -33,8 +33,7 @@ public class SchedulerService implements ISchedulerService {
     @Override
     public void create(ScheduledOperation scheduledOperation) {
         Schedule schedule = scheduledOperation.getSchedule();
-        Operation operation = scheduledOperation.getOperation();
-        UUID idScheduledOperation = operation.getUuid();
+        UUID idScheduledOperation = scheduledOperation.getUuid();
         JobDetail job = JobBuilder.newJob(CreateOperationJob.class)
                 .withIdentity(idScheduledOperation.toString(), "operations")
                 .usingJobData("operation", idScheduledOperation.toString())
@@ -118,15 +117,20 @@ public class SchedulerService implements ISchedulerService {
     @Override
     public void update(UUID uuidOperation,
                        ScheduledOperation scheduledOperation) {
+        //останавливаем
+        try {
+            scheduler.interrupt(new JobKey(uuidOperation.toString(), "operations"));
 
-        //удаляем старую запись
+        } catch (UnableToInterruptJobException e) {
+            System.out.println("Не удалось остановить джобу");
+        }
+
+        //удаляем старую джобу
         try {
             scheduler.deleteJob(new JobKey(uuidOperation.toString(), "operations"));
         } catch (SchedulerException e) {
             throw new RuntimeException("Ошибка удаления старого шедулера");
         }
-        //обновить запись в бд ScheduledOperation
-        //создать новый шедулер
-        this.create(scheduledOperation);
+
     }
 }

@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="49cb9fff-6e7e-46fe-b514-61f848a7d14b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Account/src/main/java/by/it_academy/jd2/hw/example/messenger/services/AccountService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/src/main/java/by/it_academy/jd2/hw/example/messenger/services/AccountService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Account/src/main/java/by/it_academy/jd2/hw/example/messenger/services/OperationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/src/main/java/by/it_academy/jd2/hw/example/messenger/services/OperationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Account/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Account/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MailScheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/filter/JwtFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MailScheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/filter/JwtFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Report/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Report/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Report/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestReportController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Report/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestReportController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

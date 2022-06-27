@@ -19,7 +19,7 @@ public class ReportEntity {
     @Column(name = "dt_update")
     private LocalDateTime dtUpdate;
     @Column(name = "status")
-    private StatusType status;
+    private String status;
     @Column(name = "type")
     private ReportType type;
     @Column(name = "description")
@@ -37,7 +37,7 @@ public class ReportEntity {
     }
 
     public ReportEntity(UUID uuid, LocalDateTime dtCreate,
-                        LocalDateTime dtUpdate, StatusType status,
+                        LocalDateTime dtUpdate, String status,
                         ReportType type, String description,
                         String params, String excelReport,String user) {
         this.uuid = uuid;
@@ -75,11 +75,11 @@ public class ReportEntity {
         this.dtUpdate = dtUpdate;
     }
 
-    public StatusType getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(StatusType status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -142,7 +142,7 @@ public class ReportEntity {
         private UUID uuid;
         private LocalDateTime dtCreate;
         private LocalDateTime dtUpdate;
-        private StatusType status;
+        private String status;
         private ReportType type;
         private String description;
         private String params;
@@ -168,7 +168,7 @@ public class ReportEntity {
             return this;
         }
 
-        public Builder setStatus(StatusType status) {
+        public Builder setStatus(String status) {
             this.status = status;
             return this;
         }

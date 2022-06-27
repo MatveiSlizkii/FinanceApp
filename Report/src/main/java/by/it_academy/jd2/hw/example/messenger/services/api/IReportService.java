@@ -13,8 +13,9 @@ import java.util.UUID;
 public interface IReportService {
 
     Report save (ReportType reportType, Map<String, Object> params);
-    byte[] CreateExcel (ReportType reportType,Map<String,Object> params, UUID uuidReport);
+    byte[] createExcel(ReportType reportType, Map<String,Object> params, UUID uuidReport);
     String uploadInCloud (byte[] bytes,UUID uuidReport);
+    Report updateStatus(UUID uuidReport, StatusType statusType);
     Page<Report> getAll (Pageable pageable);
     Report get (UUID uuid);
     Report update(Report reportRaw);

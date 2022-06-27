@@ -1,10 +1,9 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
 import by.it_academy.jd2.hw.example.messenger.dao.api.ScheduledReportStorage;
-import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Report;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
-import by.it_academy.jd2.hw.example.messenger.model.entity.ScheduledReportEntity;
+import by.it_academy.jd2.hw.example.messenger.dao.entity.ScheduledReportEntity;
 import by.it_academy.jd2.hw.example.messenger.services.api.IScheduledReportService;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
@@ -30,16 +29,19 @@ public class ScheduledReportService implements IScheduledReportService {
     private final ConversionService conversionService;
     private final ScheduledReportStorage scheduledReportStorage;
     private final SchedulerService schedulerService;
+    private final UserHolder userHolder;
 
     @PersistenceContext
     private EntityManager em;
 
     public ScheduledReportService(ConversionService conversionService,
                                   ScheduledReportStorage scheduledReportStorage,
-                                  SchedulerService schedulerService) {
+                                  SchedulerService schedulerService,
+                                  UserHolder userHolder) {
         this.conversionService = conversionService;
         this.scheduledReportStorage = scheduledReportStorage;
         this.schedulerService = schedulerService;
+        this.userHolder = userHolder;
     }
 
     @Override
@@ -48,9 +50,12 @@ public class ScheduledReportService implements IScheduledReportService {
         //TODO ошибки
         //TODO ошибка на то твои ли аккаунты
         LocalDateTime localDateTime = LocalDateTime.now();
-        scheduledReport.setUuid(UUID.randomUUID());
+        if (scheduledReport.getUuid() == null){
+            scheduledReport.setUuid(UUID.randomUUID());
+        }
         scheduledReport.setDtCreate(localDateTime);
         scheduledReport.setDtUpdate(localDateTime);
+        scheduledReport.getReport().setLogin(userHolder.getLoginFromContext());
 
         ScheduledReportEntity scheduledReportEntity = conversionService.convert(scheduledReport, ScheduledReportEntity.class);
         scheduledReportStorage.save(scheduledReportEntity);
@@ -61,10 +66,20 @@ public class ScheduledReportService implements IScheduledReportService {
     }
 
     @Override
+    public ScheduledReport update(UUID uuid, ScheduledReport scheduledReport) {
+        this.delete(uuid);
+        //scheduledReport.setUuid(uuid);
+        ScheduledReport scheduledReport1 = this.create(scheduledReport);
+        //schedulerService.create(scheduledReport1);
+        return scheduledReport1;
+    }
+
+    @Override
     public ScheduledReport get(UUID uuid) {
         //TODO ошибка не найдено
         //TODO проверить твои ли аккаунты
         ScheduledReportEntity scheduledReportEntity = scheduledReportStorage.getById(uuid);
+        System.out.println();
         return conversionService.convert(scheduledReportEntity, ScheduledReport.class);
     }
 
@@ -88,6 +103,7 @@ public class ScheduledReportService implements IScheduledReportService {
         if (!sre.getReportType().equals(reportRaw.getReportType()) && reportRaw.getReportType() != null){
             sre.setReportType(reportRaw.getReportType().name());
         }
+        em.close();
 
         return conversionService.convert(sre, ScheduledReport.class);
     }
@@ -126,5 +142,12 @@ public class ScheduledReportService implements IScheduledReportService {
         }
 
         return true;
+    }
+
+    @Override
+    public ScheduledReport delete(UUID uuid) {
+        ScheduledReportEntity sre = scheduledReportStorage.getById(uuid);
+        scheduledReportStorage.delete(sre);
+        return conversionService.convert(sre, ScheduledReport.class);
     }
 }

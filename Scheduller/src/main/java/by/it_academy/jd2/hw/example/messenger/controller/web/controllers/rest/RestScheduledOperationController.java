@@ -2,6 +2,9 @@ package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
 import by.it_academy.jd2.hw.example.messenger.services.api.*;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.UnableToInterruptJobException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,13 +25,17 @@ public class RestScheduledOperationController {
     private final ConversionService conversionService;
     private final IScheduledOperationService scheduledOperationService;
     private final ISchedulerService schedulerService;
+    private final Scheduler scheduler;
+
 
     public RestScheduledOperationController(ConversionService conversionService,
                                             IScheduledOperationService scheduledOperationService,
-                                            ISchedulerService schedulerService) {
+                                            ISchedulerService schedulerService,
+                                            Scheduler scheduler) {
         this.conversionService = conversionService;
         this.scheduledOperationService = scheduledOperationService;
         this.schedulerService = schedulerService;
+        this.scheduler = scheduler;
     }
 
 
@@ -53,18 +60,20 @@ public class RestScheduledOperationController {
 
 
 
-    @GetMapping(value = {"{uuid}/dt_update/{dt_update}", "{uuid}/dt_update/{dt_update}/"},
+    @PutMapping(value = {"{uuid}/dt_update/{dt_update}", "{uuid}/dt_update/{dt_update}/"},
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ScheduledOperation update(@RequestBody ScheduledOperation scheduledOperation,
                           @PathVariable UUID uuid,
-                          @PathVariable Long dt_update) {
-
-        ScheduledOperation scheduledOperation1 = scheduledOperationService.update(uuid, scheduledOperation, dt_update);
+                          @PathVariable Long dt_update) throws UnableToInterruptJobException {
         schedulerService.update(uuid, scheduledOperation);
-
+        scheduledOperationService.delete(uuid);
+        //обновить запись в бд ScheduledOperation
+        //создать новый шедулер
+        ScheduledOperation scheduledOperation1 = scheduledOperationService.save(scheduledOperation);
 
         return scheduledOperation1;
     }
+
 }

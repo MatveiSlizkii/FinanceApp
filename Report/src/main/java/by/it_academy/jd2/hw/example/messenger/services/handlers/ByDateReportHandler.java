@@ -3,6 +3,7 @@ package by.it_academy.jd2.hw.example.messenger.services.handlers;
 import by.it_academy.jd2.hw.example.messenger.model.Account;
 import by.it_academy.jd2.hw.example.messenger.model.Operation;
 import by.it_academy.jd2.hw.example.messenger.services.DataReport;
+import by.it_academy.jd2.hw.example.messenger.services.api.IDataReport;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
@@ -19,6 +20,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ByDateReportHandler implements IReportHandler {
+    private final IDataReport reportHandler;
+
+    public ByDateReportHandler(IDataReport reportHandler) {
+        this.reportHandler = reportHandler;
+    }
     @Override
     public byte[] handle(Map<String, Object> params){
         List<ValidationError> errors = new ArrayList<>();
@@ -36,7 +42,7 @@ public class ByDateReportHandler implements IReportHandler {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
         Workbook book1 = new HSSFWorkbook();
-        DataReport reportHandler = new DataReport();
+        //DataReport reportHandler = new DataReport();
         //получение лист аккаунтов
         List<UUID> accountUuids = new ArrayList<>();
         accountRaw.forEach((o) ->

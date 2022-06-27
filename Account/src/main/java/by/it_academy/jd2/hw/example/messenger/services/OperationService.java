@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -210,9 +209,7 @@ public class OperationService implements IOperationService {
         }
         List<Operation> operations = new ArrayList<>();
         List<OperationEntity> operationEntities = operationStorage.findByUuidAccountAndDateBetween(uuidAccount, to, from);
-        if (operationEntities.isEmpty()) {
-            errors.add(new ValidationError("OperationList", "список операций не найден у данног аккаунта"));
-        }
+
         if (!errors.isEmpty()) {
             throw new ValidationException("Переданы некорректные параметры", errors);
         }
@@ -271,7 +268,7 @@ public class OperationService implements IOperationService {
                 errors.add(new ValidationError("UuidAccount", "Передан uuid несуществующего счёта"));
             }
             if (!accountService.checkAccountByUser(operation.getUuidAccount(), login)) {
-                errors.add(new ValidationError("UuidAccount", "Передан uuid  которогу вы не имеете доступа"));
+                errors.add(new ValidationError("UuidAccount", "Передан uuid  к которому вы не имеете доступа"));
             }
 
         }

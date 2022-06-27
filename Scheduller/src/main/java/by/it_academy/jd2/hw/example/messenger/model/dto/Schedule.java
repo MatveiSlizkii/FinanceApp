@@ -10,13 +10,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Schedule {
-    private UUID uuid;
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime dt_create;
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime dt_update;
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime start_time;
@@ -29,41 +22,13 @@ public class Schedule {
     public Schedule() {
     }
 
-    public Schedule(UUID uuid, LocalDateTime dt_create,
-                    LocalDateTime dt_update, LocalDateTime start_time,
+    public Schedule(LocalDateTime start_time,
                     LocalDateTime stop_time, Long interval,
                     TimeUnitEnum time_unit) {
-        this.uuid = uuid;
-        this.dt_create = dt_create;
-        this.dt_update = dt_update;
         this.start_time = start_time;
         this.stop_time = stop_time;
         this.interval = interval;
         this.time_unit = time_unit;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    public LocalDateTime getDt_create() {
-        return dt_create;
-    }
-
-    public void setDt_create(LocalDateTime dt_create) {
-        this.dt_create = dt_create;
-    }
-
-    public LocalDateTime getDt_update() {
-        return dt_update;
-    }
-
-    public void setDt_update(LocalDateTime dt_update) {
-        this.dt_update = dt_update;
     }
 
     public LocalDateTime getStart_time() {
@@ -101,9 +66,6 @@ public class Schedule {
     @Override
     public String toString() {
         return "Schedule{" +
-                "uuid=" + uuid +
-                ", dt_create=" + dt_create +
-                ", dt_update=" + dt_update +
                 ", startTime=" + start_time +
                 ", stopTime=" + stop_time +
                 ", interval=" + interval +
@@ -112,30 +74,12 @@ public class Schedule {
     }
 
     public static class Builder {
-        private UUID uuid;
-        private LocalDateTime dt_create;
-        private LocalDateTime dt_update;
         private LocalDateTime startTime;
         private LocalDateTime stopTime;
         private Long interval;
         private TimeUnitEnum timeUnit;
 
         private Builder() {
-        }
-
-        public Builder setUuid(UUID uuid) {
-            this.uuid = uuid;
-            return this;
-        }
-
-        public Builder setDt_create(LocalDateTime dt_create) {
-            this.dt_create = dt_create;
-            return this;
-        }
-
-        public Builder setDt_update(LocalDateTime dt_update) {
-            this.dt_update = dt_update;
-            return this;
         }
 
         public Builder setStartTime(LocalDateTime startTime) {
@@ -163,7 +107,7 @@ public class Schedule {
         }
 
         public Schedule build() {
-            return new Schedule(uuid,dt_create, dt_update, startTime,
+            return new Schedule(startTime,
                                 stopTime, interval, timeUnit);
         }
     }

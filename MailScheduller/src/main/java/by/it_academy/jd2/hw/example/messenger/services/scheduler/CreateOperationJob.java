@@ -1,21 +1,23 @@
 package by.it_academy.jd2.hw.example.messenger.services.scheduler;
 
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Report;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ReportRequest;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
 import by.it_academy.jd2.hw.example.messenger.services.ScheduledReportService;
+import by.it_academy.jd2.hw.example.messenger.services.api.CustomUserDetails;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.UUID;
 
 @Component
@@ -76,15 +78,25 @@ public class CreateOperationJob implements Job {
         //апдейтим в базе
         scheduledReportService.updateReport(UUID.fromString(idReport), reportNew);
 
-        //отправляем создавать отчет в report_service
-        ReportRequest reportRequest = conversionService.convert(report, ReportRequest.class);
-        String url = "http://localhost:8083/api/report/" + report.getReportType();
-        HttpEntity<ReportRequest> request = new HttpEntity<>(reportRequest);
-        ReportRequest response = restTemplate.postForObject(url, request, ReportRequest.class);
-        System.out.println("Hi");
+        CustomUserDetails customUserDetails = new CustomUserDetails(report.getLogin(), "Sd");
 
-        ResponseEntity<String> response1 = restTemplate.getForEntity(
-                "http://localhost:8084/api/mail/report/" + response.getUuid(), String.class);
+
+        ReportRequest reportRequest = conversionService.convert(report, ReportRequest.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ReportRequest> entity = new HttpEntity<>(reportRequest, headers);
+        String token = JwtTokenUtil.generateAccessToken(customUserDetails);
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        String url = "http://localhost:8083/api/report/" + report.getReportType();
+        ReportRequest response = this.restTemplate.postForObject(url, entity, ReportRequest.class);
+
+
+        //отправляем создавать отчет в report_service
+
+
+        ResponseEntity<String> response1 = restTemplate.exchange(
+                "http://localhost:8084/api/mail/report/" + response.getUuid(), HttpMethod.GET, entity, String.class);
+        System.out.println(response1.getBody());
         //TODO перебить ссылки
         //TODO перебить на хидеры
 

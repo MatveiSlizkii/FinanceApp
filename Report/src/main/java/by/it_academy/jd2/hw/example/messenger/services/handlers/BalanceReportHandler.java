@@ -2,6 +2,7 @@ package by.it_academy.jd2.hw.example.messenger.services.handlers;
 
 import by.it_academy.jd2.hw.example.messenger.model.Account;
 import by.it_academy.jd2.hw.example.messenger.services.DataReport;
+import by.it_academy.jd2.hw.example.messenger.services.api.IDataReport;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
@@ -11,6 +12,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,7 +24,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class BalanceReportHandler implements IReportHandler {
+    private final IDataReport reportHandler;
 
+    public BalanceReportHandler(IDataReport reportHandler) {
+        this.reportHandler = reportHandler;
+    }
 
     @Override
     public byte[] handle(Map<String, Object> params) {
@@ -41,7 +47,7 @@ public class BalanceReportHandler implements IReportHandler {
 
 
         Workbook book = new HSSFWorkbook();
-        DataReport reportHandler = new DataReport();
+//        DataReport reportHandler = new DataReport();
 //получение лист аккаунтов
         List<UUID> accountUuids = new ArrayList<>();
         accountRaw.forEach((o) ->

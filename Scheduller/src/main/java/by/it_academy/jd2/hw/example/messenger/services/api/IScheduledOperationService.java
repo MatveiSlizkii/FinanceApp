@@ -11,4 +11,5 @@ public interface IScheduledOperationService {
     ScheduledOperation save(ScheduledOperation scheduledOperation);
     Page<ScheduledOperation> getAll(Pageable pageable);
     ScheduledOperation update (UUID uuid, ScheduledOperation scheduledOperation, Long dt_update);
+    ScheduledOperation delete (UUID uuid);
 }

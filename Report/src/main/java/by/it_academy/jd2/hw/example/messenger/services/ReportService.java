@@ -1,5 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
@@ -17,7 +18,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -55,19 +56,24 @@ public class ReportService implements IReportService {
     private String accounts_by_login;
 
     @Override
-    @Transactional
+    //@Transactional
     public Report save(ReportType reportType, Map<String, Object> params) {
         //проверка юзеров
         List<String> accountList = (List<String>) params.get("accounts");
-        ResponseEntity<Collection> response =
-                restTemplate.getForEntity(
-                        accounts_by_login + "?login=" + userHolder.getLoginFromContext(),
-                        Collection.class);
+        List<String> accTemp = new ArrayList<>(accountList);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(headers);
+        String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        String url = accounts_by_login + "/" + userHolder.getLoginFromContext();
+        ResponseEntity<Collection> response = restTemplate.exchange(url, HttpMethod.GET, entity, Collection.class);
+
         Collection raw = response.getBody();
         List<String> accountsRaw = (List<String>) raw;
-
-        accountList.removeAll(accountsRaw);
-        if (accountList.size() != 0){
+        accTemp.removeAll(accountsRaw);
+        if (accTemp.size() != 0){
             throw new ValidationException("Вы передали неверные счета к которым не имеете доступа");
         }
         //Генерация description
@@ -104,14 +110,17 @@ public class ReportService implements IReportService {
     }
 
     @Override
-    public byte[] CreateExcel(ReportType reportType, Map<String, Object> params,UUID uuidReport) {
+    @Transactional
+    public byte[] createExcel(ReportType reportType, Map<String, Object> params, UUID uuidReport) {
         IReportHandler handler = this.handlerFactory.handler(reportType);
         byte[] dataReport = handler.handle(params);
+        System.out.println();
         this.updateStatus(uuidReport, StatusType.PROGRESS);
         return dataReport;
     }
 
     @Override
+    @Transactional
     public String uploadInCloud(byte[] bytes,UUID uuidReport) {
         String urlExcel = cloud.upload(bytes);
         this.updateStatus(uuidReport, StatusType.DONE);
@@ -169,7 +178,7 @@ public class ReportService implements IReportService {
         }
         em.refresh(reportEntity, LockModeType.OPTIMISTIC);
 
-        reportEntity.setStatus(reportRaw.getStatus());
+        reportEntity.setStatus(reportRaw.getStatus().name());
         reportEntity.setType(reportRaw.getType());
         reportEntity.setDescription(reportRaw.getDescription());
         reportEntity.setParams(reportRaw.getParams());
@@ -177,21 +186,22 @@ public class ReportService implements IReportService {
 
         return conversionService.convert(reportEntity, Report.class);
     }
-
-
-    private Report updateStatus(UUID uuidReport, StatusType statusType) {
+    @Override
+    public Report updateStatus(UUID uuidReport, StatusType statusType) {
         List<ValidationError> errors = new ArrayList<>();
         ReportEntity reportEntity = null;
-        try {
+        //try {
             reportEntity = em.find(ReportEntity.class, uuidReport);
-        } catch (RuntimeException e) {
-            errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
-        }
+//        } catch (RuntimeException e) {
+//            errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
+//        }
         if (statusType == null) {
             errors.add(new ValidationError("statusType", MessageError.MISSING_FIELD));
         }
+        reportEntity.setStatus(statusType.toString());
         em.refresh(reportEntity, LockModeType.OPTIMISTIC);
-        reportEntity.setStatus(statusType);
+        System.out.println();
+        reportEntity.setStatus(statusType.toString());
 
         return conversionService.convert(reportEntity, Report.class);
     }
@@ -200,11 +210,9 @@ public class ReportService implements IReportService {
     private Report updateLink(UUID uuidReport, String link) {
         List<ValidationError> errors = new ArrayList<>();
         ReportEntity reportEntity = null;
-        try {
+
             reportEntity = em.find(ReportEntity.class, uuidReport);
-        } catch (RuntimeException e) {
-            errors.add(new ValidationError("uuidReport", MessageError.ID_NOT_EXIST));
-        }
+
         if (link.isEmpty()) {
             errors.add(new ValidationError("link", MessageError.MISSING_FIELD));
         }

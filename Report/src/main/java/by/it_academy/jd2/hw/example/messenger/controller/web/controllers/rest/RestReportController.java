@@ -2,6 +2,7 @@ package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
 import by.it_academy.jd2.hw.example.messenger.model.Report;
 import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
+import by.it_academy.jd2.hw.example.messenger.model.api.StatusType;
 import by.it_academy.jd2.hw.example.messenger.services.api.IReportService;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
 import by.it_academy.jd2.hw.example.messenger.services.claudinary.api.ICloudStorage;
@@ -14,15 +15,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
-import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@Validated
 public class RestReportController {
 
     private final IReportService reportService;
@@ -55,30 +57,27 @@ public class RestReportController {
     public ResponseEntity<Resource> download (@PathVariable (name = "uuid")UUID uuid) {
         HttpHeaders header = new HttpHeaders();
         header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + uuid + ".xlsx");
-
         Report report = reportService.get(uuid);
-
         byte[] bytes = cloudStorage.download(report.getExcelReport());
-
         return new ResponseEntity<>(new ByteArrayResource(bytes), header, HttpStatus.OK);
     }
     
     @RequestMapping(
             value = {"/report/{type}", "/report/{type}/"},
             method = RequestMethod.POST,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+            consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public Report create(@PathVariable(name = "type")ReportType type,
                         @RequestBody Map<String, Object> params){
 
         //TODO проверить через коллекцию
-        //TODO чеки на то что лежит в параметрах с учетом юзера
         Report report = reportService.save(type, params);
-        byte[] bytes = reportService.CreateExcel(type, params, report.getUuid());
-        reportService.uploadInCloud(bytes, report.getUuid());
-        return report;
+
+            byte[] bytes = reportService.createExcel(type, params, report.getUuid());
+            reportService.uploadInCloud(bytes, report.getUuid());
+
+
+        return reportService.get(report.getUuid());
     }
 
     @RequestMapping(
@@ -91,6 +90,18 @@ public class RestReportController {
     public String checkStatus (@PathVariable (name = "uuid")UUID uuid) {
         Report report = reportService.get(uuid);
         return report.getStatus().name();
+    }
+
+    @RequestMapping(
+            value = {"/account/{uuid}", "/account/{uuid}/"},
+            method = RequestMethod.GET,
+            //consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    @ResponseBody
+    public Report index1 (@PathVariable (name = "uuid")UUID uuid) {
+
+        return reportService.get(uuid);
     }
 
 

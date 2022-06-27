@@ -4,13 +4,9 @@ import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Report;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledReport;
-import by.it_academy.jd2.hw.example.messenger.model.entity.ScheduledReportEntity;
+import by.it_academy.jd2.hw.example.messenger.dao.entity.ScheduledReportEntity;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Component
 public class ScheduledReportEntityConverter implements Converter<ScheduledReportEntity, ScheduledReport> {
@@ -31,6 +27,7 @@ public class ScheduledReportEntityConverter implements Converter<ScheduledReport
                         .setTo(source.getTo())
                         .setFrom(source.getFrom())
                         .setReportType(ReportType.valueOf(source.getReportType()))
+                        .setLogin(source.getLogin())
                         .build())
                 .build();
     }

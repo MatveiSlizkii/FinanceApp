@@ -12,5 +12,7 @@ public interface IScheduledReportService {
     ScheduledReport get (UUID uuid);
     ScheduledReport updateReport (UUID uuid, Report reportRaw);
     Page<ScheduledReport> getAll (Pageable pageable);
+    ScheduledReport delete (UUID uuid);
+    ScheduledReport update (UUID uuid, ScheduledReport scheduledReport);
 
 }

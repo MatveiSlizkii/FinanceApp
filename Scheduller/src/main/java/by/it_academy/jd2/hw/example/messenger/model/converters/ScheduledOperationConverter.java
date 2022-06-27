@@ -1,4 +1,6 @@
 package by.it_academy.jd2.hw.example.messenger.model.converters;
+
+import by.it_academy.jd2.hw.example.messenger.model.api.TimeUnitEnum;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Operation;
 import by.it_academy.jd2.hw.example.messenger.model.dto.Schedule;
 import by.it_academy.jd2.hw.example.messenger.model.dto.ScheduledOperation;
@@ -10,7 +12,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ScheduledOperationConverter implements Converter<ScheduledOperationEntity,ScheduledOperation> {
+public class ScheduledOperationConverter implements Converter<ScheduledOperationEntity, ScheduledOperation> {
     @Autowired
     ConversionService conversionService;
     @Autowired
@@ -23,8 +25,20 @@ public class ScheduledOperationConverter implements Converter<ScheduledOperation
                 .setUuid(source.getUuid())
                 .setDt_create(source.getDt_create())
                 .setDt_update(source.getDt_update())
-                .setOperation(conversionService.convert(scheduledOperationService.get(source.getOperation()), Operation.class))
-                .setSchedule(conversionService.convert(scheduledOperationService.get(source.getSchedule()), Schedule.class))
+                .setOperation(Operation.Builder.createBuilder()
+                        .setAccount(source.getAccount())
+                        .setCategory(source.getCategory())
+                        .setCurrency(source.getCurrency())
+                        .setValue(source.getValue())
+                        .setDescription(source.getDescription())
+                        .setLogin(source.getUser())
+                        .build())
+                .setSchedule(Schedule.Builder.createBuilder()
+                        .setTimeUnit(TimeUnitEnum.valueOf(source.getTime_unit()))
+                        .setInterval(source.getInterval())
+                        .setStartTime(source.getStartTime())
+                        .setStopTime(source.getStopTime())
+                        .build())
                 .setUser(source.getUser())
                 .build();
     }

@@ -1,10 +1,11 @@
 package by.it_academy.jd2.hw.example.messenger.services;
 
+import by.it_academy.jd2.hw.example.messenger.controller.web.controllers.utils.JwtTokenUtil;
 import by.it_academy.jd2.hw.example.messenger.services.api.IMailService;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationError;
 import by.it_academy.jd2.hw.example.messenger.services.api.ValidationException;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -32,15 +33,6 @@ public class MailService implements IMailService {
     @Transactional
     @Override
     public boolean sendMailWithAttachment(File file){
-        //TODO перебить ссылки
-        //TODO перебить с хидером
-        ResponseEntity<Collection> response =
-                restTemplate.getForEntity(
-                        "currencyUrl",
-                        Collection.class);
-        Collection collectionReportData = response.getBody();
-        Map<String, String> mapReportData = (Map<String, String>) collectionReportData;
-        String description = mapReportData.get("description");
 
         String login = userHolder.getLoginFromContext();
         try {
@@ -50,7 +42,7 @@ public class MailService implements IMailService {
             helper.setFrom("my.finance.app@mail.ru");
             helper.setTo(login);
             helper.setSubject("Отчет");
-            helper.setText(description);
+            helper.setText("Запрашиваемый отчет ");
             FileSystemResource file1
                     = new FileSystemResource(file);
             helper.addAttachment("Invoice.xls", file1);
@@ -64,10 +56,15 @@ public class MailService implements IMailService {
 
     @Override
     public File getAttachment(UUID uuidAttachment) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(headers);
+        String token = JwtTokenUtil.generateAccessToken(this.userHolder.getUser());
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
         ResponseEntity<byte[]> response1 =
-                restTemplate.getForEntity(
-                        "http://localhost:8083/api/account/" + uuidAttachment + "/export",
+                restTemplate.exchange(
+                        "http://localhost:8083/api/" + uuidAttachment + "/export", HttpMethod.GET, entity,
                         byte[].class);
         byte[] raw = response1.getBody();
 

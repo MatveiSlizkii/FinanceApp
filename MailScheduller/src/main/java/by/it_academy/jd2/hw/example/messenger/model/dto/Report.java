@@ -27,14 +27,17 @@ public class Report {
     @JsonProperty("report_type")
     private ReportType reportType;
 
+    private String login;
+
     public Report() {
     }
 
-    public Report(UUID[] accounts, LocalDateTime to, LocalDateTime from, ReportType reportType) {
+    public Report(UUID[] accounts, LocalDateTime to, LocalDateTime from, ReportType reportType, String login) {
         this.accounts = accounts;
         this.to = to;
         this.from = from;
         this.reportType = reportType;
+        this.login = login;
     }
 
     public UUID[] getAccounts() {
@@ -65,6 +68,14 @@ public class Report {
         return reportType;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
     }
@@ -74,6 +85,7 @@ public class Report {
         private LocalDateTime to;
         private LocalDateTime from;
         private ReportType reportType;
+        private String login;
 
         private Builder() {
         }
@@ -98,12 +110,17 @@ public class Report {
             return this;
         }
 
+        public Builder setLogin(String login) {
+            this.login = login;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public Report build() {
-            return new Report(accounts, to, from, reportType);
+            return new Report(accounts, to, from, reportType, login);
         }
     }
 }

@@ -1,6 +1,5 @@
-package by.it_academy.jd2.hw.example.messenger.model.entity;
+package by.it_academy.jd2.hw.example.messenger.dao.entity;
 
-import by.it_academy.jd2.hw.example.messenger.model.api.ReportType;
 import by.it_academy.jd2.hw.example.messenger.model.api.TimeUnitEnum;
 
 import javax.persistence.*;
@@ -36,6 +35,8 @@ public class ScheduledReportEntity {
 
     @Column(name = "report_type")
     private String reportType;
+    @Column(name = "user_login")
+    private String login;
 
     public ScheduledReportEntity() {
     }
@@ -44,7 +45,7 @@ public class ScheduledReportEntity {
                                  LocalDateTime dtUpdate, LocalDateTime startTime,
                                  LocalDateTime stopTime, long interval,
                                  TimeUnitEnum time, UUID[] accounts, LocalDateTime to,
-                                 LocalDateTime from, String reportType) {
+                                 LocalDateTime from, String reportType, String login) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -56,6 +57,7 @@ public class ScheduledReportEntity {
         this.to = to;
         this.from = from;
         this.reportType = reportType;
+        this.login = login;
     }
 
     public UUID getUuid() {
@@ -146,6 +148,14 @@ public class ScheduledReportEntity {
         this.reportType = reportType;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
     public static class Builder {
         private UUID uuid;
         private LocalDateTime dtCreate;
@@ -160,6 +170,8 @@ public class ScheduledReportEntity {
         private LocalDateTime to;
         private LocalDateTime from;
         private String reportType;
+
+        private String login;
 
         private Builder() {
         }
@@ -220,13 +232,18 @@ public class ScheduledReportEntity {
             return this;
         }
 
+        public Builder setLogin(String login) {
+            this.login = login;
+            return this;
+        }
+
         public static Builder createBuilder() {
             return new Builder();
         }
 
         public ScheduledReportEntity build() {
             return new ScheduledReportEntity(uuid, dtCreate, dtUpdate, startTime, stopTime, interval,
-                    time, accounts, to, from, reportType);
+                    time, accounts, to, from, reportType, login);
         }
     }
 }
