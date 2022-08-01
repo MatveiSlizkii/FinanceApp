@@ -18,10 +18,8 @@ Finance application uses next technologies:
 - Hibernate
 - PostgreSQL
 - Maven
-- Docker
 - Cloudinary
 - Apache POI
-- JFreeChart
 - Open API
 
 ## List of Microservices
