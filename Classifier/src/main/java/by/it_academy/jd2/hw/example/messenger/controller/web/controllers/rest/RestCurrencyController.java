@@ -1,6 +1,5 @@
 package by.it_academy.jd2.hw.example.messenger.controller.web.controllers.rest;
 
-import by.it_academy.jd2.hw.example.messenger.dao.entity.CurrencyEntity;
 import by.it_academy.jd2.hw.example.messenger.model.Currency;
 import by.it_academy.jd2.hw.example.messenger.services.api.ICurrencyService;
 import by.it_academy.jd2.hw.example.messenger.services.api.MessageError;
@@ -11,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
-import java.util.List;
 
 
 @RestController

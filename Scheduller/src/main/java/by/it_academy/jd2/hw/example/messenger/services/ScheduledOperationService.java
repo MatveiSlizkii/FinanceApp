@@ -52,7 +52,6 @@ public class ScheduledOperationService implements IScheduledOperationService {
 
     public ScheduledOperationService(IScheduledOperationStorage scheduledOperationStorage,
                                      ConversionService conversionService,
-
                                      ISchedulerService schedulerService,
                                      UserHolder userHolder) {
         this.scheduledOperationStorage = scheduledOperationStorage;

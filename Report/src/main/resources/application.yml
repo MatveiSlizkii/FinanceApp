@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/reports?ApplicationName=TestSweetApp
+    url: jdbc:postgresql://localhost:5432/report_service?ApplicationName=TestSweetApp
     username: postgres
     password: postgres
   mvc:

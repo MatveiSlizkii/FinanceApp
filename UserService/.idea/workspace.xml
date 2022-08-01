@@ -5,11 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="49cb9fff-6e7e-46fe-b514-61f848a7d14b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../Account/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Account/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../Account/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../MailScheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/filter/JwtFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MailScheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/filter/JwtFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Report/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Report/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Report/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestReportController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Report/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestReportController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Classifier/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestCurrencyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Classifier/src/main/java/by/it_academy/jd2/hw/example/messenger/controller/web/controllers/rest/RestCurrencyController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Classifier/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../Classifier/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MailScheduller/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../MailScheduller/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MailService/src/main/java/by/it_academy/jd2/hw/example/messenger/services/MailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MailService/src/main/java/by/it_academy/jd2/hw/example/messenger/services/MailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MailService/src/main/java/by/it_academy/jd2/hw/example/messenger/services/api/IMailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MailService/src/main/java/by/it_academy/jd2/hw/example/messenger/services/api/IMailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MailService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../MailService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Report/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../Report/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/model/dto/OperationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/model/dto/OperationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/model/dto/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/model/dto/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/services/ScheduledOperationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Scheduller/src/main/java/by/it_academy/jd2/hw/example/messenger/services/ScheduledOperationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Scheduller/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../Scheduller/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
